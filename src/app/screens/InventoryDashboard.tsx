@@ -236,12 +236,11 @@ export function InventoryDashboard() {
               available > 10 ? "available" : available > 0 ? "low" : "out";
             const hasDamaged = product.damaged > 0;
 
-            // Stock bar proportions
-            const total = product.stock;
-            const availablePct = total > 0 ? (available / total) * 100 : 0;
-            const reservedPct =
-              total > 0 ? (product.reserved / total) * 100 : 0;
-            const damagedPct = total > 0 ? (product.damaged / total) * 100 : 0;
+            // Stock bar proportions — commented out with the bar
+            // const total = product.stock;
+            // const availablePct = total > 0 ? (available / total) * 100 : 0;
+            // const reservedPct = total > 0 ? (product.reserved / total) * 100 : 0;
+            // const damagedPct = total > 0 ? (product.damaged / total) * 100 : 0;
 
             const borderColor =
               stockStatus === "out"
@@ -326,7 +325,7 @@ export function InventoryDashboard() {
                     </div>
 
                     {/* Stock numbers row */}
-                    <div className="grid grid-cols-3 gap-1 mb-2.5">
+                    <div className="grid grid-cols-3 gap-1">
                       <div className="bg-success/8 rounded-lg px-2 py-1.5 text-center">
                         <p className="text-sm font-bold text-success leading-none">
                           {available}
@@ -363,8 +362,8 @@ export function InventoryDashboard() {
                       </div>
                     </div>
 
-                    {/* Visual stock bar */}
-                    <div className="space-y-1">
+                    {/* Visual stock bar — commented out for now */}
+                    {/* <div className="space-y-1">
                       <div className="flex h-1.5 rounded-full overflow-hidden bg-secondary gap-px">
                         {availablePct > 0 && (
                           <div
@@ -406,7 +405,7 @@ export function InventoryDashboard() {
                           {product.stock} total
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
