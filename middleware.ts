@@ -24,6 +24,7 @@ const OWNER_ONLY_ROUTES = [
   "/place-order",
   "/orders",
   "/employees",
+  "/demand-analysis",
 ];
 
 /** Routes only employees can access */
@@ -113,6 +114,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icons/|api/auth/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|icons/|api/auth/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|pdf)$).*)",
   ],
 };

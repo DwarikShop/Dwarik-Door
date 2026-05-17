@@ -77,14 +77,13 @@ export function ProfileScreen() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Bell size={20} className="text-muted-foreground" />
-                  <span className="text-sm font-medium">Notifications</span>
+                  <div>
+                    <span className="text-sm font-medium">Notifications</span>
+                    <p className="text-xs text-muted-foreground">
+                      Tap the bell on the dashboard
+                    </p>
+                  </div>
                 </div>
-                <button
-                  aria-label="Toggle notifications"
-                  className="relative inline-flex h-7 w-14 items-center rounded-full bg-accent transition-colors"
-                >
-                  <span className="inline-block h-5 w-5 transform translate-x-8 rounded-full bg-white shadow transition-transform" />
-                </button>
               </div>
 
               <div className="border-t border-border pt-4">

@@ -7,7 +7,7 @@ import { Input } from "../components/ui/input";
 import { Card } from "../components/ui/card";
 import { useProducts } from "../hooks/useProducts";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Search, AlertCircle } from "lucide-react";
+import { ArrowLeft, Search, AlertCircle, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function PlaceOrderScreen() {
@@ -137,8 +137,18 @@ export function PlaceOrderScreen() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={productsLoading}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-input bg-input-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm disabled:opacity-60"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-input bg-input-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm disabled:opacity-60"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
 
             {searchTerm && filteredProducts.length > 0 && (

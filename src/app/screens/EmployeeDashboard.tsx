@@ -12,7 +12,7 @@ import { StatusChip } from "../components/ui/StatusChip";
 export function EmployeeDashboard() {
   const { user } = useAuth();
   const router = useRouter();
-  const { orders: myOrders, isLoading } = useOrders();
+  const { orders: myOrders, isLoading } = useOrders({ role: "employee" });
 
   const pendingOrders = myOrders.filter((o) => o.status === "placed");
   const inProgressOrders = myOrders.filter((o) => o.status === "in_progress");

@@ -145,11 +145,13 @@
   }
 
   body {
-    @apply bg-background text-foreground overflow-x-hidden;
+    @apply bg-background text-foreground;
+    /* overflow-x is handled by html element below — do NOT set overflow-x-hidden
+       on body as it creates a new scroll container and breaks position:sticky */
   }
 
   html {
-    overflow-x: hidden;
+    overflow-x: clip; /* clip instead of hidden — prevents scroll container creation */
     font-size: var(--font-size);
   }
 

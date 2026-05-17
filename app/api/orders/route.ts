@@ -1,11 +1,23 @@
 /**
- * GET  /api/orders  — list ALL orders (visible to everyone — no assignment filter)
- * POST /api/orders  — create a new order + reserve stock
+ * GET  /api/orders
  *
- * Assignment is removed for now. All employees see all orders and can
- * pick them up as a progress ladder. Assignment can be added later.
+ * Query params:
+ *   ?role=owner|employee   — controls visibility rules
+ *   ?search=text           — searches id, productName, customerName
+ *   ?status=placed|...     — filter by status
+ *   ?limit=20              — max results (default 20, max 100)
  *
- * Falls back to mock data when MongoDB is unavailable.
+ * Owner rules:
+ *   - All statuses visible
+ *   - Default: latest 20 by updatedAt
+ *   - Search: real-time DB query, returns up to 20 matches
+ *
+ * Employee rules:
+ *   - placed, in_progress, done — always visible
+ *   - shipped — only last 10 days
+ *   - cancelled, rejected — hidden
+ *
+ * POST /api/orders — create a new order + reserve stock
  */
 
 import { NextResponse } from "next/server";
@@ -15,21 +27,85 @@ import { orders as mockOrders } from "@/app/data/mockData";
 
 // ── GET ───────────────────────────────────────────────────────────────────────
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const role = searchParams.get("role") ?? "owner";
+  const search = searchParams.get("search")?.trim() ?? "";
+  const status = searchParams.get("status") ?? "";
+  const limit = Math.min(parseInt(searchParams.get("limit") ?? "20"), 100);
+
   try {
     await connectDB();
-    const orders = await Order.find().sort({ updatedAt: -1 }).lean();
 
-    // Fall back to mock data if DB is empty (not seeded yet)
-    if (orders.length === 0) {
-      return NextResponse.json(mockOrders);
+    // ── Build filter ────────────────────────────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filter: Record<string, any> = {};
+
+    if (role === "employee") {
+      // Employees see active orders + shipped within last 10 days
+      const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+      filter.$or = [
+        { status: { $in: ["placed", "in_progress", "done"] } },
+        { status: "shipped", updatedAt: { $gte: tenDaysAgo } },
+      ];
+    }
+    // Owners see everything — no status filter unless explicitly requested
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$and = [
+        ...(filter.$and ?? []),
+        {
+          $or: [
+            { id: { $regex: search, $options: "i" } },
+            { productName: { $regex: search, $options: "i" } },
+            { customerName: { $regex: search, $options: "i" } },
+          ],
+        },
+      ];
+    }
+
+    const orders = await Order.find(filter)
+      .sort({ updatedAt: -1 })
+      .limit(limit)
+      .lean();
+
+    // Fall back to mock data if DB is empty
+    if (orders.length === 0 && !search && !status) {
+      const mock =
+        role === "employee"
+          ? applyEmployeeFilter(mockOrders)
+          : mockOrders.slice(0, limit);
+      return NextResponse.json(mock);
     }
 
     return NextResponse.json(orders);
   } catch {
-    // DB unavailable — return mock data
-    return NextResponse.json(mockOrders);
+    // DB unavailable — return filtered mock data
+    const mock =
+      role === "employee"
+        ? applyEmployeeFilter(mockOrders)
+        : mockOrders.slice(0, limit);
+    return NextResponse.json(mock);
   }
+}
+
+/** Apply employee visibility rules to mock data */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyEmployeeFilter(orders: any[]) {
+  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+  return orders.filter((o) => {
+    if (["placed", "in_progress", "done"].includes(o.status)) return true;
+    if (o.status === "shipped") {
+      const updated =
+        o.updatedAt instanceof Date ? o.updatedAt : new Date(o.updatedAt);
+      return updated >= tenDaysAgo;
+    }
+    return false;
+  });
 }
 
 // ── POST ──────────────────────────────────────────────────────────────────────
@@ -60,18 +136,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate order ID
     const count = await Order.countDocuments();
     const orderId = `ORD-${String(count + 1).padStart(3, "0")}`;
 
-    // ── Reserve stock ─────────────────────────────────────────────────────────
+    // Reserve stock
     const product = await Product.findOne({ id: productId });
-
     if (product) {
       const previousReserved = product.reserved;
       product.reserved += quantity;
       await product.save();
-
       await InventoryLog.create({
         productId,
         productName: product.name,
@@ -85,7 +158,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // ── Create order (no assignedTo) ──────────────────────────────────────────
     const order = await Order.create({
       id: orderId,
       productId,
@@ -101,7 +173,6 @@ export async function POST(request: Request) {
       customerPhone,
     });
 
-    // ── Write initial status history ──────────────────────────────────────────
     await StatusHistory.create({
       orderId,
       fromStatus: null,

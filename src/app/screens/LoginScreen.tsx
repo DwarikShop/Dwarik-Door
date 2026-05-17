@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "motion/react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export function LoginScreen() {
@@ -38,6 +39,15 @@ export function LoginScreen() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-6">
+      {/* Back to home button */}
+      <button
+        onClick={() => router.push("/home")}
+        className="fixed top-4 left-4 z-10 flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors bg-card/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-sm border border-border"
+      >
+        <ArrowLeft size={16} />
+        Back to Home
+      </button>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
