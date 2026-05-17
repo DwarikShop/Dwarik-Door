@@ -1,4 +1,6 @@
-import { useNavigate } from "react-router";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { BottomNav } from "../components/BottomNav";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -10,17 +12,17 @@ import { toast } from "sonner";
 export function ProfileScreen() {
   const { user, logout } = useAuth();
   const { isDark, toggleDark } = useTheme();
-  const navigate = useNavigate();
+  const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.success("Logged out successfully");
-    navigate("/login");
+    router.push("/login");
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="bg-primary text-primary-foreground px-6 py-6">
+      <header className="bg-primary text-primary-foreground px-6 py-6 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto text-center">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-primary-foreground/20 rounded-full mb-4">
             <User size={48} />

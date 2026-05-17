@@ -1,15 +1,34 @@
-import { useParams, useNavigate } from "react-router";
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { StatusChip } from "../components/ui/StatusChip";
-import { orders } from "../data/mockData";
-import { ArrowLeft, Check, Truck, X } from "lucide-react";
+import { useOrder } from "../hooks/useOrder";
+import { useAuth } from "../context/AuthContext";
+import { ArrowLeft, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function OrderDetails() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const order = orders.find((o) => o.id === id);
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { order, isLoading, isUpdating, updateStatus } = useOrder(id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="space-y-3 w-full max-w-lg px-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-card border border-border rounded-2xl h-32 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -36,12 +55,26 @@ export function OrderDetails() {
     { status: "shipped", label: "Shipped", active: order.status === "shipped" },
   ];
 
+  const handleCancel = async () => {
+    const ok = await updateStatus({
+      toStatus: "cancelled",
+      changedBy: user?.id || "owner",
+      note: "Cancelled by owner",
+    });
+    if (ok) {
+      toast.success("Order cancelled");
+      router.back();
+    } else {
+      toast.error("Failed to cancel order");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-8 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-8">
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => router.back()}
             className="p-2 hover:bg-primary-foreground/10 rounded-full transition-colors"
           >
             <ArrowLeft size={22} />
@@ -153,8 +186,9 @@ export function OrderDetails() {
                   </p>
                   {step.status === order.status && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {order.updatedAt.toLocaleDateString("en-IN")} at{" "}
-                      {order.updatedAt.toLocaleTimeString("en-IN", {
+                      {new Date(order.updatedAt!).toLocaleDateString("en-IN")}{" "}
+                      at{" "}
+                      {new Date(order.updatedAt!).toLocaleTimeString("en-IN", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -173,13 +207,13 @@ export function OrderDetails() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Created</span>
               <span className="font-semibold text-foreground">
-                {order.createdAt.toLocaleDateString("en-IN")}
+                {new Date(order.createdAt!).toLocaleDateString("en-IN")}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Last Updated</span>
               <span className="font-semibold text-foreground">
-                {order.updatedAt.toLocaleDateString("en-IN")}
+                {new Date(order.updatedAt!).toLocaleDateString("en-IN")}
               </span>
             </div>
             {order.assignedTo && (
@@ -199,13 +233,11 @@ export function OrderDetails() {
             variant="destructive"
             className="w-full"
             size="lg"
-            onClick={() => {
-              toast.success("Order cancelled");
-              navigate(-1);
-            }}
+            disabled={isUpdating}
+            onClick={handleCancel}
           >
             <X size={18} className="mr-2" />
-            Cancel Order
+            {isUpdating ? "Cancelling…" : "Cancel Order"}
           </Button>
         )}
       </main>

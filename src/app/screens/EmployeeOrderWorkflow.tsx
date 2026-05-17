@@ -1,22 +1,41 @@
+"use client";
+
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { StatusChip } from "../components/ui/StatusChip";
-import { orders } from "../data/mockData";
+import { useOrder } from "../hooks/useOrder";
+import { useAuth } from "../context/AuthContext";
 import { ArrowLeft, Play, Check, Truck, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function EmployeeOrderWorkflow() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const order = orders.find((o) => o.id === id);
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { order, isLoading, isUpdating, updateStatus } = useOrder(id);
 
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState<"damaged" | "other">(
     "damaged",
   );
   const [rejectComment, setRejectComment] = useState("");
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="space-y-3 w-full max-w-lg px-4">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="bg-card border border-border rounded-2xl h-40 animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -26,42 +45,60 @@ export function EmployeeOrderWorkflow() {
     );
   }
 
-  const handleStartWork = () => {
-    toast.success("Order moved to In Progress");
-    navigate(-1);
+  const changedBy = user?.id || "employee";
+
+  const handleStartWork = async () => {
+    const ok = await updateStatus({ toStatus: "in_progress", changedBy });
+    if (ok) {
+      toast.success("Order moved to In Progress");
+      router.back();
+    } else toast.error("Failed to update order");
   };
 
-  const handleMarkDone = () => {
-    toast.success("Order marked as Done");
-    navigate(-1);
+  const handleMarkDone = async () => {
+    const ok = await updateStatus({ toStatus: "done", changedBy });
+    if (ok) {
+      toast.success("Order marked as Done");
+      router.back();
+    } else toast.error("Failed to update order");
   };
 
-  const handleShip = () => {
-    toast.success("Order marked as Shipped");
-    navigate(-1);
+  const handleShip = async () => {
+    const ok = await updateStatus({ toStatus: "shipped", changedBy });
+    if (ok) {
+      toast.success("Order marked as Shipped");
+      router.back();
+    } else toast.error("Failed to update order");
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!rejectComment.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
     }
-    if (rejectReason === "damaged") {
-      toast.info("Inventory marked as damaged");
+    const ok = await updateStatus({
+      toStatus: "rejected",
+      changedBy,
+      note: rejectComment,
+      rejectReason,
+    });
+    if (ok) {
+      if (rejectReason === "damaged") toast.info("Inventory marked as damaged");
+      else toast.info("Stock returned to inventory");
+      toast.success("Order rejected");
+      setShowRejectModal(false);
+      router.back();
     } else {
-      toast.info("Stock returned to inventory");
+      toast.error("Failed to reject order");
     }
-    toast.success("Order rejected");
-    setShowRejectModal(false);
-    navigate(-1);
   };
 
   return (
-    <div className="min-h-screen bg-background pb-8 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-8">
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => router.back()}
             className="p-2 hover:bg-primary-foreground/10 rounded-full transition-colors"
           >
             <ArrowLeft size={22} />
@@ -142,13 +179,18 @@ export function EmployeeOrderWorkflow() {
           <div className="space-y-3">
             {order.status === "placed" && (
               <>
-                <Button className="w-full gap-2" onClick={handleStartWork}>
+                <Button
+                  className="w-full gap-2"
+                  disabled={isUpdating}
+                  onClick={handleStartWork}
+                >
                   <Play size={18} />
-                  Start Work
+                  {isUpdating ? "Updating…" : "Start Work"}
                 </Button>
                 <Button
                   variant="destructive"
                   className="w-full gap-2"
+                  disabled={isUpdating}
                   onClick={() => setShowRejectModal(true)}
                 >
                   <X size={18} />
@@ -161,14 +203,16 @@ export function EmployeeOrderWorkflow() {
               <>
                 <Button
                   className="w-full gap-2 bg-success hover:bg-success/90 text-success-foreground"
+                  disabled={isUpdating}
                   onClick={handleMarkDone}
                 >
                   <Check size={18} />
-                  Mark as Done
+                  {isUpdating ? "Updating…" : "Mark as Done"}
                 </Button>
                 <Button
                   variant="destructive"
                   className="w-full gap-2"
+                  disabled={isUpdating}
                   onClick={() => setShowRejectModal(true)}
                 >
                   <X size={18} />
@@ -178,9 +222,13 @@ export function EmployeeOrderWorkflow() {
             )}
 
             {order.status === "done" && (
-              <Button className="w-full gap-2" onClick={handleShip}>
+              <Button
+                className="w-full gap-2"
+                disabled={isUpdating}
+                onClick={handleShip}
+              >
                 <Truck size={18} />
-                Mark as Shipped
+                {isUpdating ? "Updating…" : "Mark as Shipped"}
               </Button>
             )}
 
@@ -258,9 +306,10 @@ export function EmployeeOrderWorkflow() {
                 <Button
                   variant="destructive"
                   className="flex-1"
+                  disabled={isUpdating}
                   onClick={handleReject}
                 >
-                  Reject
+                  {isUpdating ? "Rejecting…" : "Reject"}
                 </Button>
               </div>
             </div>

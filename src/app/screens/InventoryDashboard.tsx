@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { BottomNav } from "../components/BottomNav";
-import { products } from "../data/mockData";
+import { useProducts } from "../hooks/useProducts";
 import {
   Search,
   Package,
@@ -16,6 +18,30 @@ type FilterType = "all" | "low" | "out" | "damaged";
 export function InventoryDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
+  const { products, isLoading } = useProducts();
+
+  // Show skeleton cards while fetching
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-lg px-4 pt-5 pb-4">
+          <div className="max-w-lg mx-auto">
+            <div className="h-5 w-24 bg-primary-foreground/20 rounded mb-1" />
+            <div className="h-7 w-32 bg-primary-foreground/20 rounded" />
+          </div>
+        </header>
+        <div className="max-w-lg mx-auto px-4 pt-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-card border border-border rounded-2xl h-32 animate-pulse"
+            />
+          ))}
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   const stats = {
     total: products.length,
@@ -52,7 +78,7 @@ export function InventoryDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-24">
       {/* ── Sticky Header ── */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-lg">
         <div className="max-w-lg mx-auto px-4 pt-5 pb-4">

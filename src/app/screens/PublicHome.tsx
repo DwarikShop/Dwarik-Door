@@ -1,27 +1,32 @@
-import { useNavigate } from 'react-router';
-import { Button } from '../components/ui/Button';
-import { Download, Share2, LogIn } from 'lucide-react';
-import { motion } from 'motion/react';
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Button } from "../components/ui/button";
+import { Download, Share2, LogIn } from "lucide-react";
+import { motion } from "motion/react";
 
 export function PublicHome() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const featuredDoors = [
     {
-      title: 'Premium Teak Collection',
-      image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=800&fit=crop',
-      description: 'Luxury veneer doors with exceptional finish'
+      title: "Premium Teak Collection",
+      image:
+        "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=800&fit=crop",
+      description: "Luxury veneer doors with exceptional finish",
     },
     {
-      title: 'Designer Series',
-      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&h=800&fit=crop',
-      description: 'Contemporary designs for modern homes'
+      title: "Designer Series",
+      image:
+        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&h=800&fit=crop",
+      description: "Contemporary designs for modern homes",
     },
     {
-      title: 'Carved Masterpieces',
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=800&fit=crop',
-      description: 'Handcrafted artistry in every detail'
-    }
+      title: "Carved Masterpieces",
+      image:
+        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=800&fit=crop",
+      description: "Handcrafted artistry in every detail",
+    },
   ];
 
   return (
@@ -32,7 +37,7 @@ export function PublicHome() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => navigate('/login')}
+            onClick={() => router.push("/login")}
             className="flex items-center gap-2"
           >
             <LogIn size={18} />
@@ -113,11 +118,12 @@ export function PublicHome() {
           <div className="max-w-lg mx-auto text-center">
             <h3 className="text-2xl font-bold mb-4">Join Our Network</h3>
             <p className="text-muted-foreground mb-6">
-              Access our inventory management system and track your orders in real-time
+              Access our inventory management system and track your orders in
+              real-time
             </p>
             <Button
               size="lg"
-              onClick={() => navigate('/login')}
+              onClick={() => router.push("/login")}
               className="w-full sm:w-auto"
             >
               Login to Dashboard
@@ -127,7 +133,9 @@ export function PublicHome() {
       </main>
 
       <footer className="bg-primary text-primary-foreground py-6 px-6 text-center">
-        <p className="text-sm">© 2026 Dwarik Door. Premium Door Manufacturing.</p>
+        <p className="text-sm">
+          © 2026 Dwarik Door. Premium Door Manufacturing.
+        </p>
       </footer>
     </div>
   );

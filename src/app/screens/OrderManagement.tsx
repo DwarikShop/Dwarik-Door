@@ -1,15 +1,18 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 import { BottomNav } from "../components/BottomNav";
 import { FAB } from "../components/FAB";
 import { StatusChip } from "../components/ui/StatusChip";
-import { orders } from "../data/mockData";
+import { useOrders } from "../hooks/useOrders";
 import { Search, Package } from "lucide-react";
 
 export function OrderManagement() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { orders, isLoading } = useOrders();
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -31,8 +34,31 @@ export function OrderManagement() {
     { value: "shipped", label: "Shipped" },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground px-4 py-5 sticky top-0 z-40 shadow-md">
+          <div className="max-w-lg mx-auto">
+            <div className="h-6 w-40 bg-primary-foreground/20 rounded mb-3" />
+            <div className="h-10 w-full bg-primary-foreground/10 rounded-xl" />
+          </div>
+        </header>
+        <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-card border border-border rounded-2xl h-24 animate-pulse"
+            />
+          ))}
+        </div>
+        <BottomNav />
+        <FAB />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-24 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="bg-primary text-primary-foreground px-4 py-5 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto">
@@ -83,7 +109,7 @@ export function OrderManagement() {
           filteredOrders.map((order) => (
             <button
               key={order.id}
-              onClick={() => navigate(`/orders/${order.id}`)}
+              onClick={() => router.push(`/orders/${order.id}`)}
               className="w-full text-left bg-card border border-border rounded-2xl p-3 flex gap-3 shadow-sm active:scale-[0.98] transition-transform"
             >
               {/* Product image */}
@@ -125,7 +151,7 @@ export function OrderManagement() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground shrink-0 ml-2">
-                    {order.createdAt.toLocaleDateString("en-IN", {
+                    {new Date(order.createdAt!).toLocaleDateString("en-IN", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",

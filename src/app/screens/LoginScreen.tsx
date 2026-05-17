@@ -1,7 +1,9 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
+import { useRouter } from "next/navigation";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "motion/react";
 import { toast } from "sonner";
@@ -10,9 +12,9 @@ export function LoginScreen() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!phone || !password) {
@@ -20,12 +22,12 @@ export function LoginScreen() {
       return;
     }
 
-    const loggedInUser = login(phone, password);
+    const loggedInUser = await login(phone, password);
 
     if (loggedInUser) {
       toast.success("Login successful!");
       setTimeout(() => {
-        navigate(
+        router.push(
           loggedInUser.role === "owner" ? "/dashboard" : "/employee/dashboard",
         );
       }, 300);
@@ -71,7 +73,6 @@ export function LoginScreen() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <Input
-              label="Phone Number"
               type="tel"
               placeholder="Enter your phone number"
               value={phone}
@@ -80,7 +81,6 @@ export function LoginScreen() {
             />
 
             <Input
-              label="Password"
               type="password"
               placeholder="Enter your password"
               value={password}

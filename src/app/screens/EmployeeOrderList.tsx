@@ -1,19 +1,20 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 import { BottomNav } from "../components/BottomNav";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useAuth } from "../context/AuthContext";
-import { orders } from "../data/mockData";
+import { useOrders } from "../hooks/useOrders";
 import { Search, Package, ClipboardList } from "lucide-react";
 
 export function EmployeeOrderList() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Employees only see orders assigned to them
-  const myOrders = orders.filter((o) => o.assignedTo === user?.id);
+  const { orders: myOrders, isLoading } = useOrders();
 
   const filteredOrders = myOrders.filter((order) => {
     const matchesSearch =
@@ -44,8 +45,30 @@ export function EmployeeOrderList() {
     return acc;
   }, {});
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-md px-4 pt-6 pb-6">
+          <div className="max-w-lg mx-auto">
+            <div className="h-5 w-32 bg-primary-foreground/20 rounded mb-2" />
+            <div className="h-7 w-24 bg-primary-foreground/20 rounded" />
+          </div>
+        </header>
+        <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-card border border-border rounded-2xl h-24 animate-pulse"
+            />
+          ))}
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-24 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto px-4 pt-6 pb-3">
@@ -140,7 +163,7 @@ export function EmployeeOrderList() {
             return (
               <button
                 key={order.id}
-                onClick={() => navigate(`/employee/orders/${order.id}`)}
+                onClick={() => router.push(`/employee/orders/${order.id}`)}
                 className={`w-full text-left bg-card border rounded-2xl p-3 flex gap-3 shadow-sm active:scale-[0.98] transition-transform ${
                   isActionable ? "border-accent/30" : "border-border"
                 }`}

@@ -1,8 +1,11 @@
-import { useNavigate } from "react-router";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { BottomNav } from "../components/BottomNav";
 import { FAB } from "../components/FAB";
 import { useAuth } from "../context/AuthContext";
-import { orders, products } from "../data/mockData";
+import { useOrders } from "../hooks/useOrders";
+import { useProducts } from "../hooks/useProducts";
 import {
   Bell,
   AlertTriangle,
@@ -58,7 +61,9 @@ const STATUS_META: Record<
 
 export function OwnerDashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const { products } = useProducts();
+  const { orders } = useOrders();
 
   const stats = {
     pending: orders.filter((o) => o.status === "placed").length,
@@ -71,7 +76,10 @@ export function OwnerDashboard() {
 
   const hasAlerts = stats.damaged > 0 || stats.lowInventory > 0;
   const recentOrders = [...orders]
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt!).getTime() - new Date(a.updatedAt!).getTime(),
+    )
     .slice(0, 3);
 
   const pipeline = [
@@ -111,7 +119,7 @@ export function OwnerDashboard() {
   const pipelineTotal = pipeline.reduce((s, p) => s + p.value, 0) || 1;
 
   return (
-    <div className="min-h-screen bg-background pb-24 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-24">
       {/* ── Header ── */}
       <header className="bg-primary text-primary-foreground px-4 pt-8 pb-5 sticky top-0 z-40">
         <div className="max-w-lg mx-auto flex items-start justify-between">
@@ -144,7 +152,7 @@ export function OwnerDashboard() {
           <section className="space-y-2">
             {stats.damaged > 0 && (
               <button
-                onClick={() => navigate("/inventory")}
+                onClick={() => router.push("/inventory")}
                 className="w-full flex items-center gap-3 bg-destructive/5 border border-destructive/15 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-transform"
               >
                 <div className="p-2 bg-destructive/10 rounded-xl shrink-0">
@@ -167,7 +175,7 @@ export function OwnerDashboard() {
 
             {stats.lowInventory > 0 && (
               <button
-                onClick={() => navigate("/inventory")}
+                onClick={() => router.push("/inventory")}
                 className="w-full flex items-center gap-3 bg-warning/5 border border-warning/15 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-transform"
               >
                 <div className="p-2 bg-warning/10 rounded-xl shrink-0">
@@ -193,7 +201,7 @@ export function OwnerDashboard() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-foreground">Today's Pulse</h2>
             <button
-              onClick={() => navigate("/orders")}
+              onClick={() => router.push("/orders")}
               className="text-xs text-accent font-semibold flex items-center gap-0.5"
             >
               All orders <ChevronRight size={13} />
@@ -225,7 +233,7 @@ export function OwnerDashboard() {
                 return (
                   <button
                     key={s.label}
-                    onClick={() => navigate("/orders")}
+                    onClick={() => router.push("/orders")}
                     className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
                   >
                     <div
@@ -251,7 +259,7 @@ export function OwnerDashboard() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-foreground">Recent Orders</h2>
             <button
-              onClick={() => navigate("/orders")}
+              onClick={() => router.push("/orders")}
               className="text-xs text-accent font-semibold flex items-center gap-0.5"
             >
               View all <ChevronRight size={13} />
@@ -269,7 +277,7 @@ export function OwnerDashboard() {
                 return (
                   <button
                     key={order.id}
-                    onClick={() => navigate(`/orders/${order.id}`)}
+                    onClick={() => router.push(`/orders/${order.id}`)}
                     className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 active:bg-secondary/50 transition-colors"
                   >
                     {/* Image with status dot */}

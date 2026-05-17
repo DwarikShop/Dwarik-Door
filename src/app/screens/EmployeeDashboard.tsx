@@ -1,27 +1,51 @@
+"use client";
+
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { BottomNav } from "../components/BottomNav";
 import { useAuth } from "../context/AuthContext";
-import { orders } from "../data/mockData";
+import { useOrders } from "../hooks/useOrders";
 import { Clock, CheckCircle2, Package, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 import { StatusChip } from "../components/ui/StatusChip";
 
 export function EmployeeDashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const { orders: myOrders, isLoading } = useOrders();
 
-  const myOrders = orders.filter((o) => o.assignedTo === user?.id);
   const pendingOrders = myOrders.filter((o) => o.status === "placed");
   const inProgressOrders = myOrders.filter((o) => o.status === "in_progress");
   const completedToday = myOrders.filter(
     (o) =>
       o.status === "done" &&
-      o.updatedAt.toDateString() === new Date().toDateString(),
+      new Date(o.updatedAt!).toDateString() === new Date().toDateString(),
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <header className="bg-primary text-primary-foreground px-4 py-5 sticky top-0 z-40 shadow-md">
+          <div className="max-w-lg mx-auto">
+            <div className="h-4 w-20 bg-primary-foreground/20 rounded mb-1" />
+            <div className="h-6 w-32 bg-primary-foreground/20 rounded" />
+          </div>
+        </header>
+        <div className="max-w-lg mx-auto px-4 py-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-card border border-border rounded-2xl h-20 animate-pulse"
+            />
+          ))}
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-20">
       <header className="bg-primary text-primary-foreground px-4 py-5 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto">
           <p className="text-sm text-primary-foreground/70">Welcome,</p>
@@ -94,7 +118,7 @@ export function EmployeeDashboard() {
           <div className="grid grid-cols-2 gap-3">
             <Button
               className="h-20 flex flex-col gap-1.5 rounded-2xl"
-              onClick={() => navigate("/employee/orders")}
+              onClick={() => router.push("/employee/orders")}
             >
               <Package size={24} />
               <span className="text-sm">My Orders</span>
@@ -102,7 +126,7 @@ export function EmployeeDashboard() {
             <Button
               variant="outline"
               className="h-20 flex flex-col gap-1.5 rounded-2xl"
-              onClick={() => navigate("/inventory")}
+              onClick={() => router.push("/inventory")}
             >
               <Package size={24} />
               <span className="text-sm">Inventory</span>
@@ -127,7 +151,7 @@ export function EmployeeDashboard() {
               myOrders.slice(0, 5).map((order) => (
                 <button
                   key={order.id}
-                  onClick={() => navigate(`/employee/orders/${order.id}`)}
+                  onClick={() => router.push(`/employee/orders/${order.id}`)}
                   className="w-full text-left bg-card border border-border rounded-2xl p-3 flex gap-3 shadow-sm active:scale-[0.98] transition-transform"
                 >
                   <img
