@@ -13,6 +13,8 @@ out
 .env.local
 .env*.local
 .env.production
+.env.staging
+vercel-env-import.env
 
 # OS / editor
 .DS_Store
