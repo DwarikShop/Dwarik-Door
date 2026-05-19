@@ -139,8 +139,29 @@ export async function POST(request: Request) {
     const count = await Order.countDocuments();
     const orderId = `ORD-${String(count + 1).padStart(3, "0")}`;
 
-    // Reserve stock
+    // ── Hard stock check — block if quantity exceeds available ────────────
     const product = await Product.findOne({ id: productId });
+    if (!product) {
+      return NextResponse.json(
+        { error: `Product "${productId}" not found in inventory` },
+        { status: 404 },
+      );
+    }
+
+    const availableStock = product.stock - product.reserved;
+    if (quantity > availableStock) {
+      return NextResponse.json(
+        {
+          error:
+            availableStock <= 0
+              ? `"${product.name}" is out of stock. No units available.`
+              : `Insufficient stock for "${product.name}". Only ${availableStock} unit${availableStock !== 1 ? "s" : ""} available. Requested: ${quantity}.`,
+        },
+        { status: 422 },
+      );
+    }
+
+    // Reserve stock
     if (product) {
       const previousReserved = product.reserved;
       product.reserved += quantity;

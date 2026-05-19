@@ -45,6 +45,16 @@ export function PlaceOrderScreen() {
   const stockStatus =
     availableStock > 10 ? "available" : availableStock > 0 ? "low" : "out";
 
+  // Real-time quantity validation
+  const qty = parseInt(quantity) || 0;
+  const quantityExceedsStock = qty > availableStock;
+  const quantityError =
+    availableStock <= 0
+      ? `Out of stock — no units available`
+      : quantityExceedsStock
+        ? `Only ${availableStock} unit${availableStock !== 1 ? "s" : ""} available. Quantity cannot exceed ${availableStock}.`
+        : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) {
@@ -59,8 +69,8 @@ export function PlaceOrderScreen() {
       toast.error("Please enter customer details");
       return;
     }
-    if (parseInt(quantity) > availableStock) {
-      toast.error("Insufficient stock available");
+    if (quantityError) {
+      toast.error(quantityError);
       return;
     }
 
@@ -301,15 +311,38 @@ export function PlaceOrderScreen() {
               <section className="space-y-1.5">
                 <label className="text-sm font-semibold text-foreground">
                   Quantity
+                  {availableStock > 0 && (
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">
+                      (max {availableStock})
+                    </span>
+                  )}
                 </label>
                 <Input
                   type="number"
                   min="1"
+                  max={availableStock > 0 ? availableStock : undefined}
                   placeholder="Quantity"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
+                  className={
+                    quantityError
+                      ? "border-destructive focus-visible:border-destructive"
+                      : ""
+                  }
                   required
                 />
+                {/* Inline stock error — shown as soon as quantity exceeds stock */}
+                {quantityError && (
+                  <div className="flex items-start gap-2 p-3 bg-destructive/5 border border-destructive/20 rounded-xl">
+                    <AlertCircle
+                      className="text-destructive shrink-0 mt-0.5"
+                      size={16}
+                    />
+                    <p className="text-sm text-destructive font-medium">
+                      {quantityError}
+                    </p>
+                  </div>
+                )}
               </section>
 
               {/* Customization toggle */}
@@ -345,20 +378,6 @@ export function PlaceOrderScreen() {
                 )}
               </section>
 
-              {/* Out of stock warning */}
-              {stockStatus === "out" && (
-                <div className="flex gap-3 p-3 bg-destructive/5 border border-destructive/20 rounded-xl">
-                  <AlertCircle
-                    className="text-destructive shrink-0 mt-0.5"
-                    size={18}
-                  />
-                  <p className="text-sm text-destructive">
-                    This product is out of stock. The order will be placed but
-                    fulfillment may be delayed.
-                  </p>
-                </div>
-              )}
-
               {/* Submit */}
               <div className="flex gap-3 pt-2">
                 <Button
@@ -372,7 +391,9 @@ export function PlaceOrderScreen() {
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting || !!quantityError || availableStock <= 0
+                  }
                 >
                   {isSubmitting ? "Placing…" : "Place Order"}
                 </Button>
