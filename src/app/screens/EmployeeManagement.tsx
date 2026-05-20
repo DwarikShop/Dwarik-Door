@@ -6,7 +6,7 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useEmployees, type SafeEmployee } from "../hooks/useEmployees";
-import { UserPlus, X, Edit2 } from "lucide-react";
+import { UserPlus, X, Edit2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Add modal state ───────────────────────────────────────────────────────────
@@ -41,6 +41,7 @@ export function EmployeeManagement() {
     addEmployee,
     updateEmployee,
     deleteEmployee,
+    changePassword,
   } = useEmployees();
 
   // Add modal
@@ -54,6 +55,11 @@ export function EmployeeManagement() {
     phone: "",
     role: "employee",
   });
+
+  // Reset password
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showResetForm, setShowResetForm] = useState(false);
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -72,6 +78,9 @@ export function EmployeeManagement() {
   const openEdit = (emp: SafeEmployee) => {
     setEditTarget(emp);
     setEditForm({ name: emp.name, phone: emp.phone, role: emp.role });
+    setShowResetForm(false);
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -91,6 +100,27 @@ export function EmployeeManagement() {
     if (ok) toast.success(`${emp.name} removed`);
     else toast.error("Failed to remove employee");
     setEditTarget(null);
+  };
+
+  const handleResetPassword = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 4) {
+      toast.error("Password must be at least 4 characters");
+      return;
+    }
+    const ok = await changePassword(editTarget!.id, { newPassword });
+    if (ok) {
+      toast.success(`Password reset for ${editTarget!.name}`);
+      setShowResetForm(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      toast.error("Failed to reset password");
+    }
   };
 
   // ── Loading skeleton ─────────────────────────────────────────────────────────
@@ -358,12 +388,53 @@ export function EmployeeManagement() {
                   {isSubmitting ? "Saving…" : "Save Changes"}
                 </Button>
               </div>
+
+              <div className="border-t border-border pt-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowResetForm((v) => !v); setNewPassword(""); setConfirmPassword(""); }}
+                  className="w-full flex items-center justify-between py-1"
+                >
+                  <div className="flex items-center gap-2">
+                    <KeyRound size={16} className="text-muted-foreground" />
+                    <span className="text-sm font-medium">Reset Password</span>
+                  </div>
+                  <span className="text-xs text-accent font-semibold">{showResetForm ? "Cancel" : "Reset"}</span>
+                </button>
+
+                {showResetForm && (
+                  <div className="space-y-3 mt-3">
+                    <Input
+                      type="password"
+                      placeholder="New password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    <Button
+                      type="button"
+                      className="w-full"
+                      disabled={isSubmitting}
+                      onClick={handleResetPassword}
+                    >
+                      {isSubmitting ? "Saving…" : "Confirm Reset"}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      <BottomNav />
+<BottomNav />
     </div>
   );
 }

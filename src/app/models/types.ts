@@ -70,12 +70,29 @@ export interface TOrder {
   height: number;
   width: number;
   unit: MeasurementUnit;
+  freeSize?: boolean; // true = standard size, no custom dimensions
   customization?: string;
   quantity: number;
   status: OrderStatus;
   assignedTo?: string;
   customerName?: string;
   customerPhone?: string;
+  groupId?: string; // set when this order belongs to a group
+  orderType?: "single" | "group"; // defaults to 'single'
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * OrderGroup — parent record for multi-item orders from one customer.
+ * Individual orders within the group each have groupId pointing here.
+ */
+export interface TOrderGroup {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  status: "active" | "completed" | "cancelled";
+  totalItems: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

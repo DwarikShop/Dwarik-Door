@@ -22,7 +22,13 @@
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import { Order, Product, InventoryLog, StatusHistory } from "@/app/models";
+import {
+  Order,
+  OrderGroup,
+  Product,
+  InventoryLog,
+  StatusHistory,
+} from "@/app/models";
 import { orders as mockOrders } from "@/app/data/mockData";
 
 // ── GET ───────────────────────────────────────────────────────────────────────
@@ -122,16 +128,35 @@ export async function POST(request: Request) {
       height,
       width,
       unit,
+      freeSize,
       customization,
       quantity,
       customerName,
       customerPhone,
+      groupId,
+      orderType,
       changedBy,
     } = body;
 
-    if (!productId || !quantity || !height || !width) {
+    // Phone validation — exactly 10 digits
+    if (customerPhone && !/^\d{10}$/.test(customerPhone.replace(/\s/g, ""))) {
       return NextResponse.json(
-        { error: "productId, quantity, height and width are required" },
+        { error: "Customer phone must be exactly 10 digits" },
+        { status: 400 },
+      );
+    }
+
+    if (!productId || !quantity) {
+      return NextResponse.json(
+        { error: "productId and quantity are required" },
+        { status: 400 },
+      );
+    }
+
+    // Dimensions required unless freeSize is true
+    if (!freeSize && (!height || !width)) {
+      return NextResponse.json(
+        { error: "Height and width are required (or enable Free Size)" },
         { status: 400 },
       );
     }
@@ -184,14 +209,17 @@ export async function POST(request: Request) {
       productId,
       productName,
       productImage,
-      height,
-      width,
+      height: freeSize ? 0 : height,
+      width: freeSize ? 0 : width,
       unit: unit || "inch",
+      freeSize: !!freeSize,
       customization,
       quantity,
       status: "placed",
       customerName,
       customerPhone,
+      groupId: groupId || undefined,
+      orderType: orderType || "single",
     });
 
     await StatusHistory.create({
