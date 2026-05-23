@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "../components/BottomNav";
 import { FAB } from "../components/FAB";
@@ -63,7 +64,8 @@ export function OwnerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const { products } = useProducts();
-  const { orders } = useOrders();
+  const { orders } = useOrders({ role: "owner" });
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const stats = {
     pending: orders.filter((o) => o.status === "placed").length,
@@ -136,7 +138,8 @@ export function OwnerDashboard() {
           </div>
           <button
             aria-label="Notifications"
-            className="relative mt-1 p-2.5 bg-primary-foreground/10 rounded-full"
+            onClick={() => setShowNotifications(true)}
+            className="relative mt-1 p-2.5 bg-primary-foreground/10 rounded-full active:scale-95 transition-transform"
           >
             <Bell size={20} />
             {hasAlerts && (
@@ -330,6 +333,150 @@ export function OwnerDashboard() {
 
       <BottomNav />
       <FAB />
+
+      {/* ── Notification Panel ── */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowNotifications(false)}
+          />
+
+          {/* Panel */}
+          <div className="relative bg-card rounded-t-3xl shadow-2xl max-h-[75vh] flex flex-col">
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-border rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+              <h2 className="text-base font-bold text-foreground">
+                Notifications
+              </h2>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="text-xs text-accent font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Notification list */}
+            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+              {/* No alerts */}
+              {!hasAlerts && stats.pending === 0 && (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Bell size={32} className="text-muted-foreground mb-3" />
+                  <p className="text-sm font-semibold text-foreground">
+                    All clear
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    No new notifications
+                  </p>
+                </div>
+              )}
+
+              {/* Damaged inventory alert */}
+              {stats.damaged > 0 && (
+                <button
+                  onClick={() => {
+                    setShowNotifications(false);
+                    router.push("/inventory");
+                  }}
+                  className="w-full flex items-start gap-3 p-3 bg-destructive/5 border border-destructive/15 rounded-2xl text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="p-2 bg-destructive/10 rounded-xl shrink-0 mt-0.5">
+                    <AlertTriangle className="text-destructive" size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-destructive">
+                      Damaged Inventory
+                    </p>
+                    <p className="text-xs text-destructive/60 mt-0.5">
+                      {stats.damaged} unit{stats.damaged > 1 ? "s" : ""} need
+                      attention
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* Low stock alert */}
+              {stats.lowInventory > 0 && (
+                <button
+                  onClick={() => {
+                    setShowNotifications(false);
+                    router.push("/inventory");
+                  }}
+                  className="w-full flex items-start gap-3 p-3 bg-warning/5 border border-warning/15 rounded-2xl text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="p-2 bg-warning/10 rounded-xl shrink-0 mt-0.5">
+                    <Package className="text-warning" size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-warning">
+                      Low Stock
+                    </p>
+                    <p className="text-xs text-warning/60 mt-0.5">
+                      {stats.lowInventory} product
+                      {stats.lowInventory > 1 ? "s" : ""} running low
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* Pending orders */}
+              {stats.pending > 0 && (
+                <button
+                  onClick={() => {
+                    setShowNotifications(false);
+                    router.push("/orders");
+                  }}
+                  className="w-full flex items-start gap-3 p-3 bg-info/5 border border-info/15 rounded-2xl text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="p-2 bg-info/10 rounded-xl shrink-0 mt-0.5">
+                    <Clock className="text-info" size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-info">
+                      Pending Orders
+                    </p>
+                    <p className="text-xs text-info/60 mt-0.5">
+                      {stats.pending} order{stats.pending > 1 ? "s" : ""}{" "}
+                      waiting to be started
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* Orders done but not shipped */}
+              {stats.done > 0 && (
+                <button
+                  onClick={() => {
+                    setShowNotifications(false);
+                    router.push("/orders");
+                  }}
+                  className="w-full flex items-start gap-3 p-3 bg-success/5 border border-success/15 rounded-2xl text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="p-2 bg-success/10 rounded-xl shrink-0 mt-0.5">
+                    <CheckCircle2 className="text-success" size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-success">
+                      Ready to Ship
+                    </p>
+                    <p className="text-xs text-success/60 mt-0.5">
+                      {stats.done} order{stats.done > 1 ? "s" : ""} completed
+                      and ready for shipment
+                    </p>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

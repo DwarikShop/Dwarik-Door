@@ -10,12 +10,22 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Employee } from "@/app/models";
+import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
+import { cookies } from "next/headers";
 import type { UserRole } from "@/app/models/types";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params;
+
+  // Only owners can change roles
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const caller = token ? await verifyTokenSafe(token) : null;
+  if (!caller || caller.role !== "owner") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   try {
     await connectDB();

@@ -26,7 +26,6 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { employees as mockEmployees } from "../data/mockData";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -97,20 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // API returned 401 — wrong credentials
         return null;
       } catch {
-        // API unreachable — fall back to mock data for local dev
-        const mock = mockEmployees.find(
-          (e) => e.phone === phone && e.password === password,
-        );
-        if (mock) {
-          const fallback: AuthUser = {
-            id: mock.id,
-            name: mock.name,
-            phone: mock.phone,
-            role: mock.role,
-          };
-          setUser(fallback);
-          return fallback;
-        }
+        // API unreachable — do not fall back to mock in any environment
         return null;
       }
     },

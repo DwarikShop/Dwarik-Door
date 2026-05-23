@@ -101,12 +101,8 @@ export function useOrder(id: string | undefined): UseOrderResult {
         setOrder(normaliseOrder(updated));
         return true;
       } catch (err) {
-        // Optimistic update for mock/offline mode
-        if (order) {
-          setOrder({ ...order, status: toStatus, updatedAt: new Date() });
-        }
-        console.warn("[useOrder] updateStatus offline fallback:", err);
-        return true;
+        console.error("[useOrder] updateStatus failed:", err);
+        return false;
       } finally {
         setIsUpdating(false);
       }

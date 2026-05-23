@@ -4,9 +4,39 @@ import { useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Download, Share2, LogIn } from "lucide-react";
 import { motion } from "motion/react";
+import { toast } from "sonner";
+
+// Public URL of the catalogue PDF (served from /public)
+const CATALOGUE_URL = "/dwarik-catalogue-2024.pdf";
+const CATALOGUE_FILENAME = "Dwarik-Door-Catalogue-2024.pdf";
 
 export function PublicHome() {
   const router = useRouter();
+
+  // ── Download handler ──────────────────────────────────────────────────────
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = CATALOGUE_URL;
+    link.download = CATALOGUE_FILENAME;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Downloading catalogue…");
+  };
+
+  // ── WhatsApp share handler ────────────────────────────────────────────────
+  const handleWhatsApp = () => {
+    // Build the full URL to the PDF so recipients can open it directly
+    const pdfUrl = `${window.location.origin}${CATALOGUE_URL}`;
+    const message = encodeURIComponent(
+      `Check out the Dwarik Door 2024 Catalogue! 🚪✨\n\nPremium quality doors for homes and commercial spaces.\n\nView / Download: ${pdfUrl}`,
+    );
+    window.open(
+      `https://wa.me/?text=${message}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
 
   const featuredDoors = [
     {
@@ -70,6 +100,7 @@ export function PublicHome() {
               <Button
                 variant="secondary"
                 size="lg"
+                onClick={handleDownload}
                 className="flex items-center gap-2"
               >
                 <Download size={20} />
@@ -78,6 +109,7 @@ export function PublicHome() {
               <Button
                 variant="outline"
                 size="lg"
+                onClick={handleWhatsApp}
                 className="flex items-center gap-2 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
               >
                 <Share2 size={20} />

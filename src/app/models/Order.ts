@@ -90,6 +90,20 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       trim: true,
     },
+    freeSize: {
+      type: Boolean,
+      default: false,
+    },
+    groupId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    orderType: {
+      type: String,
+      enum: ["single", "group"],
+      default: "single",
+    },
   },
   {
     timestamps: true,

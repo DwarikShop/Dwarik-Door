@@ -10,8 +10,17 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Employee } from "@/app/models";
 import { employees as mockEmployees } from "@/app/data/mockData";
+import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+async function requireOwner() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const caller = token ? await verifyTokenSafe(token) : null;
+  return caller?.role === "owner" ? caller : null;
+}
 
 // ── GET ───────────────────────────────────────────────────────────────────────
 
@@ -45,6 +54,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
 // ── PATCH ─────────────────────────────────────────────────────────────────────
 
 export async function PATCH(request: Request, { params }: RouteParams) {
+  if (!await requireOwner()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { id } = await params;
 
   try {
@@ -102,6 +114,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 // ── DELETE ────────────────────────────────────────────────────────────────────
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
+  if (!await requireOwner()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const { id } = await params;
 
   try {

@@ -30,6 +30,11 @@ interface UpdateEmployeeInput {
   role?: UserRole;
 }
 
+interface ChangePasswordInput {
+  currentPassword?: string; // required for self-change, omit for owner reset
+  newPassword: string;
+}
+
 interface UseEmployeesResult {
   employees: SafeEmployee[];
   isLoading: boolean;
@@ -41,6 +46,7 @@ interface UseEmployeesResult {
     input: UpdateEmployeeInput,
   ) => Promise<SafeEmployee | null>;
   deleteEmployee: (id: string) => Promise<boolean>;
+  changePassword: (id: string, input: ChangePasswordInput) => Promise<boolean>;
   refetch: () => void;
 }
 
@@ -141,6 +147,34 @@ export function useEmployees(): UseEmployeesResult {
     [],
   );
 
+  // ── Change password ───────────────────────────────────────────────────────
+
+  const changePassword = useCallback(
+    async (id: string, input: ChangePasswordInput): Promise<boolean> => {
+      setIsSubmitting(true);
+      try {
+        const res = await fetch(`/api/employees/${id}/change-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(input),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to change password");
+        }
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to change password";
+        setError(msg);
+        return false;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [],
+  );
+
   // ── Delete ────────────────────────────────────────────────────────────────
 
   const deleteEmployee = useCallback(async (id: string): Promise<boolean> => {
@@ -176,6 +210,7 @@ export function useEmployees(): UseEmployeesResult {
     addEmployee,
     updateEmployee,
     deleteEmployee,
+    changePassword,
     refetch: fetchEmployees,
   };
 }
