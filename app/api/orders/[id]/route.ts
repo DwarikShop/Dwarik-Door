@@ -40,13 +40,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     await connectDB();
     const body = await request.json();
 
-    // Prevent status changes through this endpoint — use /status instead
-    delete body.status;
-    delete body.id;
+    // Whitelist — only these fields can be updated via this endpoint
+    const allowed = ["assignedTo", "customerName", "customerPhone", "customization"];
+    const update: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in body) update[key] = body[key];
+    }
 
     const order = await Order.findOneAndUpdate(
       { id },
-      { $set: body },
+      { $set: update },
       { new: true, runValidators: true },
     ).lean();
 

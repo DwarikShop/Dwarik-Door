@@ -14,9 +14,10 @@ export function EmployeeDashboard() {
   const router = useRouter();
   const { orders: myOrders, isLoading } = useOrders({ role: "employee" });
 
-  const pendingOrders = myOrders.filter((o) => o.status === "placed");
-  const inProgressOrders = myOrders.filter((o) => o.status === "in_progress");
-  const completedToday = myOrders.filter(
+  const assignedOrders = myOrders.filter((o) => o.assignedTo === user?.id);
+  const pendingOrders = assignedOrders.filter((o) => o.status === "placed");
+  const inProgressOrders = assignedOrders.filter((o) => o.status === "in_progress");
+  const completedToday = assignedOrders.filter(
     (o) =>
       o.status === "done" &&
       new Date(o.updatedAt!).toDateString() === new Date().toDateString(),
@@ -140,7 +141,7 @@ export function EmployeeDashboard() {
             Assigned Orders
           </h2>
           <div className="space-y-3">
-            {myOrders.length === 0 ? (
+            {assignedOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Package size={40} className="text-muted-foreground mb-3" />
                 <p className="text-sm text-muted-foreground">
@@ -148,7 +149,7 @@ export function EmployeeDashboard() {
                 </p>
               </div>
             ) : (
-              myOrders.slice(0, 5).map((order) => (
+              assignedOrders.slice(0, 5).map((order) => (
                 <button
                   key={order.id}
                   onClick={() => router.push(`/employee/orders/${order.id}`)}

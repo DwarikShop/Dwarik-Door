@@ -9,6 +9,15 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Employee } from "@/app/models";
 import { employees as mockEmployees } from "@/app/data/mockData";
+import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
+import { cookies } from "next/headers";
+
+async function requireOwner() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const caller = token ? await verifyTokenSafe(token) : null;
+  return caller?.role === "owner" ? caller : null;
+}
 
 // ── GET ───────────────────────────────────────────────────────────────────────
 
@@ -37,6 +46,9 @@ export async function GET() {
 // ── POST ──────────────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
+  if (!await requireOwner()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     await connectDB();
     const { name, phone, password, role } = await request.json();

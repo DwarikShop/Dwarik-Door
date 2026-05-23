@@ -35,24 +35,30 @@ export async function POST(request: Request) {
     } | null = null;
 
     // ── Try MongoDB first ─────────────────────────────────────────────────
+    let dbAvailable = false;
+    let dbHasEmployees = false;
     try {
       await connectDB();
-      const doc = await Employee.findOne({ phone, password }).lean();
-      if (doc) {
+      dbAvailable = true;
+      // Find by phone first — avoids timing attacks from findOne({ phone, password })
+      const byPhone = await Employee.findOne({ phone }).lean();
+      // If phone not found, do a quick existence check to know if DB is seeded
+      dbHasEmployees = !!byPhone || (await Employee.estimatedDocumentCount()) > 0;
+      if (byPhone && byPhone.password === password) {
         found = {
-          id: doc.id,
-          name: doc.name,
-          phone: doc.phone,
-          role: doc.role,
+          id: byPhone.id,
+          name: byPhone.name,
+          phone: byPhone.phone,
+          role: byPhone.role,
         };
       }
     } catch {
       // DB connection failed — will fall through to mock data below
     }
 
-    // ── Fall back to mock data if DB returned nothing ─────────────────────
-    // This covers: DB empty (not seeded), DB unavailable, or wrong credentials
-    if (!found) {
+    // ── Fall back to mock data ONLY if DB is unreachable or empty ─────────
+    // If DB is reachable and has employees, wrong credentials are rejected.
+    if (!found && (!dbAvailable || !dbHasEmployees)) {
       const mock = mockEmployees.find(
         (e) => e.phone === phone && e.password === password,
       );

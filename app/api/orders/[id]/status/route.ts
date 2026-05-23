@@ -34,8 +34,13 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Order, Product, InventoryLog, StatusHistory } from "@/app/models";
 import type { OrderStatus } from "@/app/models/types";
+import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+// Transitions only owners can trigger
+const OWNER_ONLY_TRANSITIONS: OrderStatus[] = ["cancelled"];
 
 // Valid transitions map
 const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -49,6 +54,14 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 
 export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params;
+
+  // Verify caller role from JWT
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const caller = token ? await verifyTokenSafe(token) : null;
+  if (!caller) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     await connectDB();
@@ -66,6 +79,30 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         { error: "toStatus and changedBy are required" },
         { status: 400 },
       );
+    }
+
+    // Owner-only transitions
+    if (OWNER_ONLY_TRANSITIONS.includes(toStatus) && caller.role !== "owner") {
+      return NextResponse.json(
+        { error: `Only owners can mark an order as '${toStatus}'` },
+        { status: 403 },
+      );
+    }
+
+    // Rejection requires both a reason category and a note
+    if (toStatus === "rejected") {
+      if (!rejectReason || !["damaged", "other"].includes(rejectReason)) {
+        return NextResponse.json(
+          { error: "rejectReason is required ('damaged' or 'other')" },
+          { status: 400 },
+        );
+      }
+      if (!note?.trim()) {
+        return NextResponse.json(
+          { error: "A rejection note is required" },
+          { status: 400 },
+        );
+      }
     }
 
     // ── Load order ────────────────────────────────────────────────────────────
@@ -91,17 +128,17 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       const qty = order.quantity;
 
       if (toStatus === "cancelled") {
-        // Release reservation
-        const prev = product.reserved;
-        product.reserved = Math.max(0, product.reserved - qty);
-        await product.save();
+        await Product.findOneAndUpdate(
+          { id: product.id },
+          { $inc: { reserved: -qty } },
+        );
         await InventoryLog.create({
           productId: product.id,
           productName: product.name,
           field: "reserved",
-          previousValue: prev,
-          newValue: product.reserved,
-          delta: -(prev - product.reserved),
+          previousValue: product.reserved,
+          newValue: Math.max(0, product.reserved - qty),
+          delta: -qty,
           reason: "order_cancelled",
           orderId: id,
           changedBy,
@@ -109,58 +146,48 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       }
 
       if (toStatus === "rejected") {
-        // Always release reservation
-        const prevReserved = product.reserved;
-        product.reserved = Math.max(0, product.reserved - qty);
+        await Product.findOneAndUpdate(
+          { id: product.id },
+          { $inc: { reserved: -qty, ...(rejectReason === "damaged" ? { damaged: qty } : {}) } },
+        );
         await InventoryLog.create({
           productId: product.id,
           productName: product.name,
           field: "reserved",
-          previousValue: prevReserved,
-          newValue: product.reserved,
-          delta: -(prevReserved - product.reserved),
+          previousValue: product.reserved,
+          newValue: Math.max(0, product.reserved - qty),
+          delta: -qty,
           reason: "order_rejected",
           orderId: id,
           changedBy,
         });
-
         if (rejectReason === "damaged") {
-          // Mark units as damaged
-          const prevDamaged = product.damaged;
-          product.damaged += qty;
           await InventoryLog.create({
             productId: product.id,
             productName: product.name,
             field: "damaged",
-            previousValue: prevDamaged,
-            newValue: product.damaged,
+            previousValue: product.damaged,
+            newValue: product.damaged + qty,
             delta: qty,
             reason: "damage_report",
             orderId: id,
             changedBy,
           });
         }
-        // rejectReason === 'other': stock stays — units return to available automatically
-        // (available = stock - reserved, and reserved was just decremented)
-
-        await product.save();
       }
 
       if (toStatus === "shipped") {
-        // Fulfil: decrement both reserved and total stock
-        const prevReserved = product.reserved;
-        const prevStock = product.stock;
-        product.reserved = Math.max(0, product.reserved - qty);
-        product.stock = Math.max(0, product.stock - qty);
-        await product.save();
-
+        await Product.findOneAndUpdate(
+          { id: product.id },
+          { $inc: { reserved: -qty, stock: -qty } },
+        );
         await InventoryLog.create({
           productId: product.id,
           productName: product.name,
           field: "reserved",
-          previousValue: prevReserved,
-          newValue: product.reserved,
-          delta: -(prevReserved - product.reserved),
+          previousValue: product.reserved,
+          newValue: Math.max(0, product.reserved - qty),
+          delta: -qty,
           reason: "order_shipped",
           orderId: id,
           changedBy,
@@ -169,9 +196,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           productId: product.id,
           productName: product.name,
           field: "stock",
-          previousValue: prevStock,
-          newValue: product.stock,
-          delta: -(prevStock - product.stock),
+          previousValue: product.stock,
+          newValue: Math.max(0, product.stock - qty),
+          delta: -qty,
           reason: "order_shipped",
           orderId: id,
           changedBy,

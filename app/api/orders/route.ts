@@ -30,15 +30,22 @@ import {
   StatusHistory,
 } from "@/app/models";
 import { orders as mockOrders } from "@/app/data/mockData";
+import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 // ── GET ───────────────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const role = searchParams.get("role") ?? "owner";
   const search = searchParams.get("search")?.trim() ?? "";
   const status = searchParams.get("status") ?? "";
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20"), 100);
+
+  // Read role from JWT — never trust the client-supplied ?role= param
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const caller = token ? await verifyTokenSafe(token) : null;
+  const role = caller?.role ?? "employee"; // default to most restrictive
 
   try {
     await connectDB();
@@ -149,6 +156,27 @@ export async function POST(request: Request) {
     if (!productId || !quantity) {
       return NextResponse.json(
         { error: "productId and quantity are required" },
+        { status: 400 },
+      );
+    }
+
+    if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1) {
+      return NextResponse.json(
+        { error: "quantity must be a positive integer" },
+        { status: 400 },
+      );
+    }
+
+    if (!customerName?.trim()) {
+      return NextResponse.json(
+        { error: "customerName is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!customerPhone?.trim()) {
+      return NextResponse.json(
+        { error: "customerPhone is required" },
         { status: 400 },
       );
     }

@@ -37,11 +37,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     await connectDB();
     const body = await request.json();
-    delete body.id;
+
+    // Whitelist — only status and totalItems can be updated
+    const update: Record<string, unknown> = {};
+    if (body.status !== undefined) update.status = body.status;
+    if (body.totalItems !== undefined) update.totalItems = body.totalItems;
 
     const group = await OrderGroup.findOneAndUpdate(
       { id },
-      { $set: body },
+      { $set: update },
       { new: true, runValidators: true },
     ).lean();
 
