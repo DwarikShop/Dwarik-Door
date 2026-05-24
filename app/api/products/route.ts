@@ -15,7 +15,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Product } from "@/app/models";
-import { products as mockProducts } from "@/app/data/mockData";
 import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
 import { cookies } from "next/headers";
 
@@ -30,15 +29,18 @@ export async function GET() {
   try {
     await connectDB();
     const products = await Product.find().sort({ id: 1 }).lean();
-    if (products.length === 0) return NextResponse.json(mockProducts);
     return NextResponse.json(products);
-  } catch {
-    return NextResponse.json(mockProducts);
+  } catch (err) {
+    console.error("[GET /api/products]", err);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: Request) {
-  if (!await requireOwner()) {
+  if (!(await requireOwner())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
@@ -58,8 +60,7 @@ export async function POST(request: Request) {
       // Custom ID provided — check for duplicates
       id = id.trim().toUpperCase();
       const existing = await Product.findOne({ id }).lean();
-      const inMock = mockProducts.some((p) => p.id.toUpperCase() === id);
-      if (existing || inMock) {
+      if (existing) {
         return NextResponse.json(
           {
             error: `Product ID "${id}" already exists. Please use a different ID.`,
