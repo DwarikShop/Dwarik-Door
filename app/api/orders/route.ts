@@ -29,7 +29,6 @@ import {
   InventoryLog,
   StatusHistory,
 } from "@/app/models";
-import { orders as mockOrders } from "@/app/data/mockData";
 import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
 import { cookies } from "next/headers";
 
@@ -86,39 +85,14 @@ export async function GET(request: Request) {
       .limit(limit)
       .lean();
 
-    // Fall back to mock data if DB is empty
-    if (orders.length === 0 && !search && !status) {
-      const mock =
-        role === "employee"
-          ? applyEmployeeFilter(mockOrders)
-          : mockOrders.slice(0, limit);
-      return NextResponse.json(mock);
-    }
-
     return NextResponse.json(orders);
-  } catch {
-    // DB unavailable — return filtered mock data
-    const mock =
-      role === "employee"
-        ? applyEmployeeFilter(mockOrders)
-        : mockOrders.slice(0, limit);
-    return NextResponse.json(mock);
+  } catch (err) {
+    console.error("[GET /api/orders]", err);
+    return NextResponse.json(
+      { error: "Failed to fetch orders" },
+      { status: 500 },
+    );
   }
-}
-
-/** Apply employee visibility rules to mock data */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function applyEmployeeFilter(orders: any[]) {
-  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
-  return orders.filter((o) => {
-    if (["placed", "in_progress", "done"].includes(o.status)) return true;
-    if (o.status === "shipped") {
-      const updated =
-        o.updatedAt instanceof Date ? o.updatedAt : new Date(o.updatedAt);
-      return updated >= tenDaysAgo;
-    }
-    return false;
-  });
 }
 
 // ── POST ──────────────────────────────────────────────────────────────────────
@@ -160,7 +134,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1) {
+    if (
+      typeof quantity !== "number" ||
+      !Number.isInteger(quantity) ||
+      quantity < 1
+    ) {
       return NextResponse.json(
         { error: "quantity must be a positive integer" },
         { status: 400 },
