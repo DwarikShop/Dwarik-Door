@@ -7,7 +7,7 @@ import { StatusChip } from "../components/ui/StatusChip";
 import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
-import { Search, Package, ClipboardList, X } from "lucide-react";
+import { Search, Package, ClipboardList, X, ChevronRight, Clock } from "lucide-react";
 
 export function EmployeeOrderList() {
   const router = useRouter();
@@ -15,10 +15,10 @@ export function EmployeeOrderList() {
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Debounce — 400ms after typing stops before hitting the API
+  // Debounce search typing
   const debouncedSearch = useDebounce(searchInput, 400);
 
-  // Server-side filtering — no client-side array.filter()
+  // Server-side filtering
   const {
     orders: myOrders,
     isLoading,
@@ -32,25 +32,25 @@ export function EmployeeOrderList() {
   const statusFilters = [
     { value: "all", label: "All" },
     { value: "placed", label: "Placed" },
-    { value: "in_progress", label: "In Progress" },
+    { value: "in_progress", label: "Progress" },
     { value: "done", label: "Done" },
     { value: "shipped", label: "Shipped" },
   ];
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-md px-4 pt-6 pb-6">
+      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.2s_ease-out]">
+        <header className="bg-primary text-primary-foreground sticky top-0 z-40 px-4 pt-6 pb-5 shadow-md">
           <div className="max-w-lg mx-auto">
-            <div className="h-5 w-32 bg-primary-foreground/20 rounded mb-2" />
-            <div className="h-7 w-24 bg-primary-foreground/20 rounded" />
+            <div className="h-4 w-20 bg-primary-foreground/10 rounded mb-1.5 animate-pulse" />
+            <div className="h-6 w-32 bg-primary-foreground/20 rounded animate-pulse" />
           </div>
         </header>
-        <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
-          {[1, 2, 3].map((i) => (
+        <div className="max-w-lg mx-auto px-4 py-5 space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="bg-card border border-border rounded-2xl h-24 animate-pulse"
+              className="bg-card border border-border/50 rounded-2xl h-16 animate-pulse"
             />
           ))}
         </div>
@@ -60,90 +60,108 @@ export function EmployeeOrderList() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
+    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
+      
+      {/* Brand Header consistent with other pages */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-md">
-        <div className="max-w-lg mx-auto px-4 pt-6 pb-3">
+        <div className="max-w-lg mx-auto px-4 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs text-primary-foreground/55 font-medium">
-                {user?.name}
+              <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
+                Operator Portal
               </p>
-              <h1 className="text-xl font-bold leading-tight">My Orders</h1>
+              <h1 className="text-xl font-bold tracking-tight mt-1">My Work log</h1>
             </div>
-            <div className="flex items-center gap-1.5 bg-primary-foreground/10 px-3 py-1.5 rounded-full">
-              <ClipboardList size={13} className="text-primary-foreground/70" />
-              <span className="text-xs font-bold text-primary-foreground/80">
-                {myOrders.length} orders
+            
+            <div className="flex items-center gap-1.5 bg-primary-foreground/10 px-3 py-1 rounded-full border border-primary-foreground/5 shrink-0">
+              <ClipboardList size={11} className="text-accent animate-pulse mr-1" />
+              <span className="text-[9px] font-black uppercase tracking-wider">
+                {myOrders.length} Orders
               </span>
             </div>
           </div>
 
-          {/* Search — stays mounted, no focus loss */}
-          <div className="relative">
+          {/* Search Box */}
+          <div className="relative group">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50"
-              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 group-focus-within:text-primary-foreground transition-colors"
+              size={14}
             />
             <input
               type="text"
-              placeholder="Search orders…"
+              placeholder="Search assigned orders ID, name or specifications…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent border-0 text-sm"
+              className="w-full h-8.5 pl-9 pr-8 rounded-xl bg-primary-foreground/10 border border-primary-foreground/5 text-primary-foreground placeholder:text-primary-foreground/45 focus:outline-none focus:border-accent focus:ring-1.5 focus:ring-accent/10 text-xs transition-all"
             />
-            {/* Inline spinner — no page remount, no focus loss */}
             {isFetching && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                <div className="w-3.5 h-3.5 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               </div>
             )}
             {!isFetching && searchInput && (
               <button
                 onClick={() => setSearchInput("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 hover:text-primary-foreground transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-primary-foreground/10 rounded-full text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-pointer"
                 aria-label="Clear search"
               >
-                <X size={16} />
+                <X size={11} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-3">
-          {statusFilters.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setStatusFilter(f.value)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                statusFilter === f.value
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-primary-foreground/10 text-primary-foreground/70"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* Dynamic Filter Pills inside header */}
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-none px-4 pb-2.5 max-w-lg mx-auto">
+          {statusFilters.map((f) => {
+            const isSelected = statusFilter === f.value;
+            return (
+              <button
+                key={f.value}
+                onClick={() => setStatusFilter(f.value)}
+                className={`flex-shrink-0 px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
+                  isSelected
+                    ? "bg-accent text-accent-foreground shadow-sm font-extrabold"
+                    : "bg-primary-foreground/10 text-primary-foreground/75 hover:bg-primary-foreground/20 border border-transparent"
+                }`}
+              >
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       </header>
 
-      {/* Order list */}
-      <main className="max-w-lg mx-auto px-4 py-3 space-y-3">
+      {/* Main High-Density Work log Feed */}
+      <main className="max-w-lg mx-auto px-4 pt-3.5 pb-6 space-y-2">
+        {/* Results Metadata */}
+        <div className="flex items-center justify-between px-1 mb-1">
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground/60">
+            {myOrders.length} Active job{myOrders.length !== 1 ? "s" : ""} assigned
+            {debouncedSearch && ` for "${debouncedSearch}"`}
+          </p>
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput("")}
+              className="text-[9px] text-accent font-extrabold uppercase tracking-widest cursor-pointer"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+
         {myOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-4">
-              <Package size={32} className="text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-border/40 p-6 shadow-sm">
+            <div className="w-12 h-12 bg-secondary/80 rounded-xl flex items-center justify-center mb-3 text-muted-foreground">
+              <Package size={22} />
             </div>
-            <p className="font-semibold text-foreground mb-1">
-              {debouncedSearch
-                ? `No results for "${debouncedSearch}"`
-                : "No orders"}
+            <p className="font-extrabold text-foreground mb-0.5 text-xs">
+              No orders found
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[10px] text-muted-foreground max-w-[180px]">
               {debouncedSearch
-                ? "Try a different search term"
-                : "No active orders right now"}
+                ? "No active orders matching your query. Try a different search."
+                : "All updates clear! No orders assigned right now."}
             </p>
           </div>
         ) : (
@@ -153,50 +171,87 @@ export function EmployeeOrderList() {
               const isActionable =
                 order.status === "placed" || order.status === "in_progress";
 
-            return (
-              <button
-                key={order.id}
-                onClick={() => router.push(`/employee/orders/${order.id}`)}
-                className={`w-full text-left bg-card border rounded-2xl p-3 flex gap-3 shadow-sm active:scale-[0.98] transition-transform ${
-                  isActionable ? "border-accent/30" : "border-border"
-                }`}
-              >
-                <div className="relative shrink-0">
-                  <img
-                    src={order.productImage}
-                    alt={order.productName}
-                    className="w-20 h-20 rounded-xl object-cover bg-secondary"
-                  />
-                  {isActionable && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-accent rounded-full border-2 border-card" />
-                  )}
-                </div>
+              return (
+                <button
+                  key={order.id}
+                  onClick={() => router.push(`/employee/orders/${order.id}`)}
+                  className={`w-full text-left bg-card border rounded-2xl overflow-hidden shadow-sm active:scale-[0.99] transition-all flex flex-col gap-0 cursor-pointer ${
+                    isActionable ? "border-accent/35" : "border-border/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 p-2.5">
+                    {/* Small thumbnail with wooden door fallback */}
+                    <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-border/40 bg-secondary/30 relative">
+                      <img
+                        src={order.productImage || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
+                        alt={order.productName}
+                        className="w-full h-full object-cover"
+                      />
+                      {isActionable && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full border border-card animate-ping" />
+                      )}
+                    </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="font-semibold text-foreground text-sm leading-snug line-clamp-2 flex-1 min-w-0">
-                      {order.productName}
-                    </p>
-                    <StatusChip status={order.status} className="shrink-0" />
+                    {/* Order Information Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[8px] font-mono text-muted-foreground/80 truncate">
+                            {order.id}
+                          </span>
+                          {order.customerName && (
+                            <>
+                              <span className="w-1 h-1 rounded-full bg-border shrink-0" />
+                              <span className="text-[9px] font-extrabold uppercase text-foreground/80 truncate">
+                                {order.customerName}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        <StatusChip status={order.status} className="text-[8px] px-1.5 py-0.5 shrink-0" />
+                      </div>
+
+                      <h3 className="font-extrabold text-foreground text-xs leading-tight truncate mt-0.5">
+                        {order.productName}
+                      </h3>
+
+                      {/* Dimensions & Specs pills */}
+                      <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground mt-1 flex-wrap leading-none">
+                        <span className="font-medium bg-secondary/70 border border-border/40 px-1 py-0.5 rounded text-[8px]">
+                          {order.height} × {order.width} {order.unit}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-border shrink-0" />
+                        <span className="font-medium bg-accent/5 border border-accent/10 text-accent px-1.5 py-0.5 rounded text-[8px]">
+                          Qty: {order.quantity}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-border shrink-0" />
+                        <span className="capitalize">{order.packaging || "plastic"}</span>
+                      </div>
+                    </div>
+
+                    <ChevronRight size={12} className="text-muted-foreground/50 ml-1 shrink-0" />
                   </div>
-                  <p className="text-xs text-muted-foreground mb-1.5">
-                    {order.id}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    {order.height} × {order.width} {order.unit} &bull;{" "}
-                    {order.quantity} pcs &bull; <span className="capitalize font-medium text-accent">{order.packaging || "plastic"}</span>
-                  </p>
+
+                  {/* Compact Bottom Action Strips for operators */}
                   {isActionable && (
-                    <p className="text-xs text-accent font-semibold mt-2.5">
-                      {order.status === "placed"
-                        ? "Tap to start work →"
-                        : "Tap to update →"}
-                    </p>
+                    <div
+                      className={`flex items-center gap-1.5 px-3 py-1 border-t text-[8px] font-bold uppercase tracking-wider ${
+                        order.status === "placed"
+                          ? "bg-accent/5 border-accent/20 text-accent"
+                          : "bg-info/5 border-info/20 text-info"
+                      }`}
+                    >
+                      <Clock size={9} className="shrink-0 animate-pulse" />
+                      <span>
+                        {order.status === "placed"
+                          ? "● Pending Start: Tap to initialize production"
+                          : "● In Progress: Tap to complete manufacturing"}
+                      </span>
+                    </div>
                   )}
-                </div>
-              </button>
-            );
-          })
+                </button>
+              );
+            })
         )}
       </main>
 

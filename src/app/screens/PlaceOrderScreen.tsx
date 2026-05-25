@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card } from "../components/ui/card";
 import { useProducts } from "../hooks/useProducts";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Search, AlertCircle, X, Plus, Layers } from "lucide-react";
+import { ArrowLeft, Search, AlertCircle, X, Plus, Layers, Sparkles, Check, ClipboardList, Info, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Toggle helper ─────────────────────────────────────────────────────────────
@@ -22,18 +22,18 @@ function Toggle({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm font-semibold text-foreground">{label}</span>
+      <span className="text-xs uppercase font-extrabold text-foreground tracking-wider">{label}</span>
       <button
         type="button"
         aria-label={`Toggle ${label}`}
         onClick={onToggle}
-        className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-200 ${
-          on ? "bg-accent" : "bg-secondary"
+        className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${
+          on ? "bg-accent" : "bg-[#FAF9F6] border border-border"
         }`}
       >
         <span
-          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-            on ? "translate-x-8" : "translate-x-1"
+          className={`inline-block h-4 w-4 transform rounded-full shadow transition-transform duration-200 ${
+            on ? "translate-x-7 bg-[#FAF9F6]" : "translate-x-1 bg-muted-foreground/40"
           }`}
         />
       </button>
@@ -75,7 +75,7 @@ export function PlaceOrderScreen() {
   // Order type toggle
   const [isGroupOrder, setIsGroupOrder] = useState(false);
 
-  // Customer details (shared for both types)
+  // Customer details
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
@@ -96,11 +96,11 @@ export function PlaceOrderScreen() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Product dropdown lazy loading states
+  // Dropdown lazy loading indices
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(3);
 
-  // ── Product search filter ─────────────────────────────────────────────────
+  // Filter products by ID or Name
   const filterProducts = (term: string) => {
     if (!term) return products;
     const t = term.toLowerCase();
@@ -109,7 +109,7 @@ export function PlaceOrderScreen() {
     );
   };
 
-  // ── Stock validation for an item ──────────────────────────────────────────
+  // Stock check
   const getStockError = (item: OrderItem) => {
     if (!item.product) return null;
     const available = item.product.stock - item.product.reserved;
@@ -120,7 +120,7 @@ export function PlaceOrderScreen() {
     return null;
   };
 
-  // ── Update a group item field ─────────────────────────────────────────────
+  // Update field of specific group order item
   const updateGroupItem = (index: number, patch: Partial<OrderItem>) => {
     setGroupItems((prev) =>
       prev.map((it, i) => (i === index ? { ...it, ...patch } : it)),
@@ -137,7 +137,7 @@ export function PlaceOrderScreen() {
     setGroupSearches((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // Submit flow - placed sequentially to prevent ID conflicts
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -179,7 +179,7 @@ export function PlaceOrderScreen() {
     try {
       let groupId: string | undefined;
 
-      // For group orders, create the group first
+      // Group orders: Create group first
       if (isGroupOrder) {
         const grpRes = await fetch("/api/order-groups", {
           method: "POST",
@@ -196,8 +196,7 @@ export function PlaceOrderScreen() {
         groupId = grp.id;
       }
 
-      // Place each order sequentially to avoid duplicate ID race condition
-      const results: { ok: boolean; data: Record<string, unknown> }[] = [];
+      // Place sequentially
       for (const item of items) {
         const r = await fetch("/api/orders", {
           method: "POST",
@@ -222,7 +221,6 @@ export function PlaceOrderScreen() {
           }),
         });
         const data = await r.json();
-        results.push({ ok: r.ok, data });
         if (!r.ok) {
           toast.error(data.error || "Failed to place order");
           return;
@@ -241,7 +239,7 @@ export function PlaceOrderScreen() {
 
       toast.success(
         isGroupOrder
-          ? `Group order placed — ${items.length} items`
+          ? `Group order placed successfully — ${items.length} items`
           : "Order placed successfully!",
       );
       setTimeout(() => router.push("/orders"), 500);
@@ -255,7 +253,7 @@ export function PlaceOrderScreen() {
     }
   };
 
-  // ── Render a single order item form ──────────────────────────────────────
+  // Render order form item
   const renderItem = (
     item: OrderItem,
     search: string,
@@ -281,22 +279,22 @@ export function PlaceOrderScreen() {
 
     return (
       <div className="space-y-4">
-        {/* Product search */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground mb-2">
-            {index !== undefined ? `Product ${index + 1}` : "Search Product"}
-          </h3>
-          <div className="relative">
+        {/* Product Selection */}
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+            {index !== undefined ? `Product catalog ${index + 1}` : "Select Product"}
+          </label>
+          <div className="relative group">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={18}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors"
+              size={15}
             />
             <input
               type="text"
               placeholder={
                 productsLoading
-                  ? "Loading products…"
-                  : "Search by Product ID or Name"
+                  ? "Loading products catalogue…"
+                  : "Search catalog by ID or Name"
               }
               value={search}
               onFocus={() => {
@@ -304,7 +302,6 @@ export function PlaceOrderScreen() {
                 setVisibleCount(3);
               }}
               onBlur={() => {
-                // Delayed blur to let click event on products dropdown register
                 setTimeout(() => setActiveSearchIndex(null), 250);
               }}
               onChange={(e) => {
@@ -312,7 +309,7 @@ export function PlaceOrderScreen() {
                 setVisibleCount(3);
               }}
               disabled={productsLoading}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-input bg-input-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm disabled:opacity-60"
+              className="w-full h-11 pl-10 pr-10 rounded-2xl bg-[#1E1311]/5 border border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 text-xs transition-all disabled:opacity-50"
             />
             {search && (
               <button
@@ -321,17 +318,18 @@ export function PlaceOrderScreen() {
                   onSearchChange("");
                   setVisibleCount(3);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-secondary rounded-full text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={13} />
               </button>
             )}
           </div>
 
+          {/* Lazy Loaded Dropdown List */}
           {isDropdownOpen && filtered.length > 0 && (
             <div
               onScroll={handleScroll}
-              className="mt-2 max-h-48 overflow-y-auto rounded-xl border border-border bg-card shadow-md scrollbar-thin"
+              className="mt-2 max-h-52 overflow-y-auto rounded-2xl border border-border bg-card shadow-lg scrollbar-none animate-[fadeIn_0.2s_ease-out]"
             >
               {filtered.slice(0, visibleCount).map((p) => (
                 <button
@@ -342,18 +340,18 @@ export function PlaceOrderScreen() {
                     onSearchChange("");
                     setActiveSearchIndex(null);
                   }}
-                  className="w-full text-left flex gap-3 items-center p-3 hover:bg-secondary transition-colors first:rounded-t-xl last:rounded-b-xl"
+                  className="w-full text-left flex gap-3 items-center p-3 hover:bg-secondary/40 border-b border-border/10 last:border-b-0 transition-colors cursor-pointer"
                 >
                   <img
-                    src={p.image}
+                    src={p.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
                     alt={p.name}
-                    className="w-10 h-10 rounded-lg object-cover shrink-0 bg-secondary"
+                    className="w-9 h-9 rounded-lg object-cover shrink-0 bg-secondary border border-border/30"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-foreground truncate">
+                    <p className="font-extrabold text-xs text-foreground truncate leading-snug">
                       {p.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">{p.id}</p>
+                    <p className="text-[10px] font-mono text-muted-foreground">{p.id}</p>
                   </div>
                 </button>
               ))}
@@ -361,74 +359,81 @@ export function PlaceOrderScreen() {
           )}
         </div>
 
-        {/* Selected product preview */}
+        {/* Selected Product Card Preview with Custom Door Fallback */}
         {item.product && (
-          <Card className="p-3 gap-0 bg-secondary/40">
+          <div className="p-3.5 border border-accent/15 bg-accent/5 rounded-2xl animate-[fadeIn_0.3s_ease-out]">
             <div className="flex gap-3 items-center">
               <img
-                src={item.product.image}
+                src={item.product.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
                 alt={item.product.name}
-                className="w-14 h-14 rounded-xl object-cover shrink-0 bg-secondary"
+                className="w-12 h-12 rounded-xl object-cover shrink-0 bg-secondary border border-border/20"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-foreground text-sm truncate">
+                <p className="font-extrabold text-foreground text-xs truncate">
                   {item.product.name}
                 </p>
-                <p className="text-xs text-muted-foreground mb-1">
+                <p className="text-[10px] font-mono text-muted-foreground">
                   {item.product.id}
                 </p>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                    stockStatus === "available"
-                      ? "bg-success/10 text-success"
+                
+                {/* Stock status indicator */}
+                <div className="mt-1.5 flex items-center">
+                  <span
+                    className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${
+                      stockStatus === "available"
+                        ? "bg-success/15 text-success"
+                        : stockStatus === "low"
+                          ? "bg-warning/15 text-warning"
+                          : "bg-destructive/15 text-destructive"
+                    }`}
+                  >
+                    {stockStatus === "available"
+                      ? `${available} units available`
                       : stockStatus === "low"
-                        ? "bg-warning/10 text-warning"
-                        : "bg-destructive/10 text-destructive"
-                  }`}
-                >
-                  {stockStatus === "available"
-                    ? `${available} Available`
-                    : stockStatus === "low"
-                      ? `Low Stock (${available})`
-                      : "Out of Stock"}
-                </span>
+                        ? `Critical Low Stock (${available})`
+                        : "Out of Stock"}
+                  </span>
+                </div>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
         {item.product && (
           <>
-            {/* Measurements */}
-            <div className="space-y-3">
+            {/* Dimensions Specifications */}
+            <div className="space-y-3 p-3.5 bg-secondary/25 border border-border/40 rounded-2xl">
               <Toggle
                 on={item.freeSize}
                 onToggle={() => onItemChange({ freeSize: !item.freeSize })}
-                label="Free Size (standard dimensions)"
+                label="Free Size (Standard Dimensions)"
               />
 
               {!item.freeSize && (
-                <>
+                <div className="space-y-3.5 animate-[fadeIn_0.2s_ease-out] pt-1">
+                  {/* Unit Selector tab buttons */}
                   <div className="flex gap-2">
                     {(["inch", "mm"] as const).map((u) => (
                       <button
                         key={u}
                         type="button"
                         onClick={() => onItemChange({ unit: u })}
-                        className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${
+                        className={`flex-1 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                           item.unit === u
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-secondary text-secondary-foreground"
+                            ? "bg-accent text-accent-foreground shadow-sm"
+                            : "bg-[#1E1311]/5 text-muted-foreground hover:bg-[#1E1311]/10"
                         }`}
                       >
                         {u.toUpperCase()}
                       </button>
                     ))}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  
+                  {/* Height & Width Inputs */}
+                  <div className="grid grid-cols-2 gap-3.5">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">
-                        Height
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Height ({item.unit})
                       </label>
                       <Input
                         type="number"
@@ -437,12 +442,13 @@ export function PlaceOrderScreen() {
                         onChange={(e) =>
                           onItemChange({ height: e.target.value })
                         }
+                        className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20"
                         required={!item.freeSize}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">
-                        Width
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Width ({item.unit})
                       </label>
                       <Input
                         type="number"
@@ -451,17 +457,18 @@ export function PlaceOrderScreen() {
                         onChange={(e) =>
                           onItemChange({ width: e.target.value })
                         }
+                        className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20"
                         required={!item.freeSize}
                       />
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
  
-            {/* Packaging Option */}
-            <div className="py-1">
-              <label className="block text-sm font-semibold text-foreground mb-2.5">
+            {/* Packaging Option Selector */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Packaging Option
               </label>
               <div className="flex gap-2">
@@ -470,10 +477,10 @@ export function PlaceOrderScreen() {
                     key={p}
                     type="button"
                     onClick={() => onItemChange({ packaging: p })}
-                    className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${
+                    className={`flex-1 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                       item.packaging === p
                         ? "bg-accent text-accent-foreground shadow-sm scale-[1.01]"
-                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        : "bg-[#1E1311]/5 text-muted-foreground hover:bg-[#1E1311]/10"
                     }`}
                   >
                     {p === "carton" ? "Carton" : "Plastic"}
@@ -482,13 +489,13 @@ export function PlaceOrderScreen() {
               </div>
             </div>
 
-            {/* Quantity */}
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-foreground">
-                Quantity
+            {/* Quantity Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                Total Quantity
                 {available > 0 && (
-                  <span className="ml-2 text-xs font-normal text-muted-foreground">
-                    (max {available})
+                  <span className="ml-1 text-[9px] font-normal text-muted-foreground/60">
+                    (Stock Cap: {available})
                   </span>
                 )}
               </label>
@@ -496,42 +503,42 @@ export function PlaceOrderScreen() {
                 type="number"
                 min="1"
                 max={available > 0 ? available : undefined}
-                placeholder="Quantity"
+                placeholder="Enter quantity"
                 value={item.quantity}
                 onChange={(e) => onItemChange({ quantity: e.target.value })}
-                className={stockError ? "border-destructive" : ""}
+                className={`h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 ${stockError ? "border-destructive focus-visible:border-destructive" : ""}`}
                 required
               />
               {stockError && (
-                <div className="flex items-start gap-2 p-3 bg-destructive/5 border border-destructive/20 rounded-xl">
+                <div className="flex items-start gap-2 p-3.5 bg-destructive/5 border border-destructive/20 rounded-2xl animate-[fadeIn_0.2s_ease-out]">
                   <AlertCircle
                     className="text-destructive shrink-0 mt-0.5"
-                    size={16}
+                    size={14}
                   />
-                  <p className="text-sm text-destructive font-medium">
+                  <p className="text-xs text-destructive font-medium">
                     {stockError}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Customization */}
-            <div className="space-y-2">
+            {/* Custom Notes */}
+            <div className="space-y-2 p-3.5 bg-secondary/25 border border-border/40 rounded-2xl">
               <Toggle
                 on={item.customization}
                 onToggle={() =>
                   onItemChange({ customization: !item.customization })
                 }
-                label="Customization"
+                label="Custom Specifications"
               />
               {item.customization && (
                 <textarea
-                  placeholder="Enter customization details…"
+                  placeholder="Enter customization notes (wood carvings, specific glass options, polish types)…"
                   value={item.customizationText}
                   onChange={(e) =>
                     onItemChange({ customizationText: e.target.value })
                   }
-                  className="w-full px-3 py-2.5 rounded-xl border border-input bg-input-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
+                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-[#FAF9F6]/40 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed animate-[fadeIn_0.2s_ease-out]"
                   rows={3}
                 />
               )}
@@ -542,25 +549,33 @@ export function PlaceOrderScreen() {
     );
   };
 
-  // ── Main render ───────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-12 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
+      
+      {/* Brand Header consistent with other pages */}
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-primary-foreground/10 rounded-full transition-colors"
+            className="p-1.5 hover:bg-primary-foreground/10 active:scale-90 rounded-full transition-all cursor-pointer text-primary-foreground animate-[fadeIn_0.2s_ease-out]"
+            aria-label="Back"
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={18} />
           </button>
-          <h1 className="text-xl font-bold">Place Order</h1>
+          <div>
+            <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
+              Client Portal
+            </p>
+            <h1 className="text-base font-bold tracking-tight text-primary-foreground mt-0.5">Place Order</h1>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-4">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Order type toggle */}
-          <Card className="p-4 gap-0">
+      <main className="max-w-lg mx-auto px-4 py-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Order type Toggle card */}
+          <Card className="p-4 border-border/50 shadow-sm rounded-3xl flex flex-col gap-0 bg-card relative overflow-hidden">
             <Toggle
               on={isGroupOrder}
               onToggle={() => {
@@ -568,40 +583,47 @@ export function PlaceOrderScreen() {
                 setGroupItems([emptyItem()]);
                 setGroupSearches([""]);
               }}
-              label="Group Order"
+              label="Group Order Workflow"
             />
-            <p className="text-xs text-muted-foreground mt-1.5">
+            <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed">
               {isGroupOrder
-                ? "Multiple products under one customer — tracked as a group"
-                : "Single product order for one customer"}
+                ? "Process multiple door catalog items under one customer reference, grouped together."
+                : "Standard single door catalog item order for one client."}
             </p>
           </Card>
 
-          {/* Customer details */}
-          <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">
-              Customer Details
-            </h3>
+          {/* Customer Details Form block */}
+          <Card className="p-5 border-border/50 shadow-sm rounded-3xl flex flex-col gap-3.5 bg-card">
+            <div className="flex items-center gap-2 pb-1.5 border-b border-border/30 text-accent">
+              <ClipboardList size={14} />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-foreground">
+                Customer Specifications
+              </h3>
+            </div>
+            
+            {/* Customer Name */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Customer Name
               </label>
               <Input
-                placeholder="Enter customer name"
+                placeholder="Enter client's full name"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
+                className="h-10 rounded-xl bg-[#1E1311]/5 border-border/60 focus-visible:ring-accent/20 text-xs"
                 required
               />
             </div>
+            
+            {/* Phone Number */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">
-                Customer Phone{" "}
-                <span className="text-muted-foreground/60">(10 digits)</span>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Customer Phone <span className="text-muted-foreground/60 font-normal">(10 Digits)</span>
               </label>
               <Input
                 type="tel"
                 inputMode="numeric"
-                placeholder="Enter 10-digit phone number"
+                placeholder="Enter 10-digit number"
                 value={customerPhone}
                 maxLength={10}
                 onChange={(e) =>
@@ -609,49 +631,53 @@ export function PlaceOrderScreen() {
                     e.target.value.replace(/\D/g, "").slice(0, 10),
                   )
                 }
-                className={phoneError ? "border-destructive" : ""}
+                className={`h-10 rounded-xl bg-[#1E1311]/5 border-border/60 focus-visible:ring-accent/20 text-xs ${phoneError ? "border-destructive focus-visible:border-destructive" : ""}`}
                 required
               />
               {phoneError && (
-                <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertCircle size={12} /> {phoneError}
+                <p className="text-[10px] text-destructive flex items-center gap-1 font-bold mt-1">
+                  <AlertCircle size={11} /> {phoneError}
                 </p>
               )}
             </div>
-          </section>
+          </Card>
 
-          {/* Single order */}
-          {!isGroupOrder &&
-            renderItem(singleItem, singleSearch, setSingleSearch, (patch) =>
-              setSingleItem((prev) => ({ ...prev, ...patch })),
-            )}
+          {/* Render single item flow */}
+          {!isGroupOrder && (
+            <Card className="p-5 border-border/50 shadow-sm rounded-3xl flex flex-col gap-0 bg-card">
+              {renderItem(singleItem, singleSearch, setSingleSearch, (patch) =>
+                setSingleItem((prev) => ({ ...prev, ...patch })),
+              )}
+            </Card>
+          )}
 
-          {/* Group order items */}
+          {/* Group order items block */}
           {isGroupOrder && (
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Layers size={16} className="text-accent" />
-                  Order Items ({groupItems.length})
+            <section className="space-y-4 animate-[fadeIn_0.3s_ease-out]">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Layers size={14} className="text-accent" />
+                  Order Group Items ({groupItems.length})
                 </h3>
               </div>
 
               {groupItems.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-card border border-border rounded-2xl p-4 space-y-4"
+                  className="bg-card border border-border/50 rounded-3xl p-5 space-y-4 shadow-sm relative overflow-hidden animate-[slideUp_0.2s_ease-out]"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-accent uppercase tracking-wide">
-                      Item {index + 1}
+                  <div className="flex items-center justify-between pb-2 border-b border-border/30">
+                    <span className="text-[10px] font-extrabold text-accent uppercase tracking-wide">
+                      Door Item {index + 1}
                     </span>
                     {groupItems.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeGroupItem(index)}
-                        className="p-1 hover:bg-destructive/10 rounded-lg transition-colors"
+                        className="p-1 hover:bg-destructive/10 text-destructive rounded-lg transition-colors cursor-pointer"
+                        aria-label="Remove item"
                       >
-                        <X size={16} className="text-destructive" />
+                        <X size={15} />
                       </button>
                     )}
                   </div>
@@ -671,33 +697,33 @@ export function PlaceOrderScreen() {
               <button
                 type="button"
                 onClick={addGroupItem}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-accent/40 text-accent text-sm font-semibold hover:bg-accent/5 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-accent/40 text-accent text-xs font-bold uppercase tracking-wider hover:bg-accent/5 active:scale-[0.99] transition-all cursor-pointer"
               >
-                <Plus size={18} />
+                <Plus size={15} />
                 Add Another Product
               </button>
             </section>
           )}
 
-          {/* Submit */}
-          <div className="flex gap-3 pt-2">
+          {/* Submit Action Block */}
+          <div className="flex gap-3 pt-4 border-t border-border/30">
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer"
               onClick={() => router.back()}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1"
+              className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15"
               disabled={isSubmitting || !!phoneError}
             >
               {isSubmitting
                 ? "Placing…"
                 : isGroupOrder
-                  ? `Place Group Order (${groupItems.length})`
+                  ? `Place Group (${groupItems.length})`
                   : "Place Order"}
             </Button>
           </div>

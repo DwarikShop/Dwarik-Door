@@ -7,7 +7,7 @@ import { Card } from "../components/ui/card";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrder } from "../hooks/useOrder";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Play, Check, Truck, X } from "lucide-react";
+import { ArrowLeft, Play, Check, Truck, X, Calendar, Phone, User, Clock, Sparkles, Box, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export function EmployeeOrderWorkflow() {
@@ -24,12 +24,18 @@ export function EmployeeOrderWorkflow() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="space-y-3 w-full max-w-lg px-4">
+      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-8 font-sans select-none flex flex-col animate-[fadeIn_0.2s_ease-out]">
+        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
+          <div className="max-w-lg mx-auto flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary-foreground/10 animate-pulse" />
+            <div className="h-6 w-32 bg-primary-foreground/20 rounded animate-pulse" />
+          </div>
+        </header>
+        <div className="max-w-lg mx-auto w-full px-4 py-5 space-y-4">
           {[1, 2].map((i) => (
             <div
               key={i}
-              className="bg-card border border-border rounded-2xl h-40 animate-pulse"
+              className="bg-card border border-border/50 rounded-2xl h-40 animate-pulse"
             />
           ))}
         </div>
@@ -39,8 +45,17 @@ export function EmployeeOrderWorkflow() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Order not found</p>
+      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] flex items-center justify-center font-sans p-6">
+        <div className="text-center space-y-4 max-w-sm bg-card p-8 rounded-3xl border border-border/50 shadow-sm">
+          <div className="w-14 h-14 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto text-destructive">
+            <X size={28} />
+          </div>
+          <h2 className="font-extrabold text-foreground text-sm uppercase tracking-wider">Order Not Found</h2>
+          <p className="text-xs text-muted-foreground">The order reference ID is invalid or has been archived.</p>
+          <Button onClick={() => router.back()} className="w-full h-10 rounded-xl font-bold bg-primary text-primary-foreground">
+            Go Back
+          </Button>
+        </div>
       </div>
     );
   }
@@ -94,111 +109,166 @@ export function EmployeeOrderWorkflow() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-12 font-sans select-none animate-[fadeIn_0.2s_ease-out]">
+      
+      {/* Brand Header consistent with other pages */}
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-primary-foreground/10 rounded-full transition-colors"
-          >
-            <ArrowLeft size={22} />
-          </button>
-          <h1 className="text-xl font-bold">Order Workflow</h1>
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="p-1.5 hover:bg-primary-foreground/10 active:scale-90 rounded-full transition-all cursor-pointer text-primary-foreground"
+              aria-label="Back"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
+                Operator Workspace
+              </p>
+              <h1 className="text-base font-bold tracking-tight text-primary-foreground mt-0.5">Order Workflow</h1>
+            </div>
+          </div>
+          <StatusChip status={order.status} className="text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold" />
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-4 space-y-4">
-        {/* Order summary */}
-        <Card className="p-4 gap-0">
-          <div className="flex items-start justify-between mb-3">
+      <main className="max-w-lg mx-auto px-4 py-5 space-y-4">
+        
+        {/* Core Product Summary Receipt Card */}
+        <Card className="p-5 border-border/50 shadow-sm rounded-3xl relative overflow-hidden flex flex-col gap-0 bg-card">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent opacity-80" />
+          
+          <div className="flex justify-between items-start gap-4 mb-4">
             <div>
-              <p className="text-xs text-muted-foreground">Order ID</p>
-              <p className="text-lg font-bold text-foreground">{order.id}</p>
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-accent">Order Reference</span>
+              <p className="text-sm font-mono font-bold text-foreground mt-0.5">{order.id}</p>
             </div>
-            <StatusChip status={order.status} />
           </div>
 
-          <div className="flex gap-3">
-            <img
-              src={order.productImage}
-              alt={order.productName}
-              className="w-20 h-20 rounded-xl object-cover shrink-0 bg-secondary"
-            />
+          <div className="flex gap-4 items-center">
+            {/* Elegant Product Thumbnail with mock wooden door placeholder fallback */}
+            <div className="w-20 h-20 shrink-0 rounded-2xl overflow-hidden border border-border/40 bg-secondary/30 relative">
+              <img
+                src={order.productImage || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
+                alt={order.productName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-foreground truncate">
-                {order.productName}
-              </p>
-              <p className="text-xs text-muted-foreground mb-2">
+              <span className="text-[8px] uppercase tracking-wider font-black text-accent/80 block leading-none mb-1">
                 {order.productId}
-              </p>
-              <div className="space-y-0.5 text-sm">
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">Size:</span>{" "}
-                  {order.height} × {order.width} {order.unit}
-                </p>
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">Qty:</span>{" "}
-                  {order.quantity} pcs
-                </p>
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">Packaging:</span>{" "}
-                  <span className="capitalize font-semibold text-accent">{order.packaging || "plastic"}</span>
-                </p>
+              </span>
+              <h3 className="font-extrabold text-foreground text-sm leading-snug line-clamp-2">
+                {order.productName}
+              </h3>
+              
+              {/* Dimensions specs list */}
+              <div className="grid grid-cols-1 gap-1.5 mt-2.5 pt-2 border-t border-border/30">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Box size={12} className="text-accent" />
+                  <span className="font-medium text-foreground">
+                    Size: {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* High Density Triple Specs grid (Quantity, Packaging, Dim Unit) */}
+          <div className="mt-5 pt-3.5 border-t border-border/35 grid grid-cols-3 gap-2.5">
+            <div className="bg-success/5 border border-success/10 rounded-2xl p-2 text-center flex flex-col justify-center min-w-0">
+              <span className="text-[8px] uppercase font-bold text-muted-foreground tracking-wider block truncate">Quantity</span>
+              <p className="text-sm font-black text-success mt-0.5 truncate">{order.quantity} units</p>
+            </div>
+            <div className="bg-info/5 border border-info/10 rounded-2xl p-2 text-center flex flex-col justify-center min-w-0">
+              <span className="text-[8px] uppercase font-bold text-muted-foreground tracking-wider block truncate">Packaging</span>
+              <p className="text-sm font-black text-info mt-0.5 capitalize truncate">{order.packaging || "plastic"}</p>
+            </div>
+            <div className="bg-accent/5 border border-accent/10 rounded-2xl p-2 text-center flex flex-col justify-center min-w-0">
+              <span className="text-[8px] uppercase font-bold text-muted-foreground tracking-wider block truncate">Dim Unit</span>
+              <p className="text-sm font-black text-accent mt-0.5 capitalize truncate">{order.unit || "inches"}</p>
+            </div>
+          </div>
+
           {order.customization && (
-            <div className="mt-3 p-3 bg-warning/5 border border-warning/20 rounded-xl">
-              <p className="text-xs font-semibold text-warning mb-1">
-                ⚠️ Customization Required
+            <div className="mt-4 p-3.5 bg-warning/5 border border-warning/15 border-l-2 border-l-warning rounded-r-2xl animate-[fadeIn_0.3s_ease-out]">
+              <div className="flex items-center gap-1 mb-1 text-warning">
+                <Info size={11} className="animate-pulse" />
+                <p className="text-[9px] font-black uppercase tracking-wider">⚠️ Customization Required</p>
+              </div>
+              <p className="text-xs text-foreground leading-relaxed">
+                {order.customization}
               </p>
-              <p className="text-sm text-foreground">{order.customization}</p>
             </div>
           )}
         </Card>
 
-        {/* Customer details */}
-        <Card className="p-4 gap-0">
-          <h3 className="font-bold text-foreground mb-3">Customer Details</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Name</span>
-              <span className="font-semibold text-foreground">
-                {order.customerName || "N/A"}
+        {/* Customer contact block with Click-to-Call trigger */}
+        <Card className="p-4.5 border-border/50 shadow-sm rounded-3xl flex flex-col gap-0 bg-card">
+          <div className="flex items-center gap-2 mb-3.5 pb-2 border-b border-border/30">
+            <User size={14} className="text-accent" />
+            <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider">Customer Details</h3>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <User size={11} className="text-muted-foreground/60" /> Client Name
+              </span>
+              <span className="font-bold text-foreground">
+                {order.customerName || "Walk-in Customer"}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Phone</span>
-              <span className="font-semibold text-foreground">
-                {order.customerPhone || "N/A"}
+            
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <Phone size={11} className="text-muted-foreground/60" /> Phone number
               </span>
+              {order.customerPhone ? (
+                <a
+                  href={`tel:${order.customerPhone}`}
+                  className="font-bold text-accent font-mono hover:underline cursor-pointer active:scale-95 transition-transform"
+                >
+                  {order.customerPhone}
+                </a>
+              ) : (
+                <span className="font-bold text-muted-foreground/60 font-mono">
+                  Not Provided
+                </span>
+              )}
             </div>
           </div>
         </Card>
 
-        {/* Actions */}
-        <Card className="p-4 gap-0">
-          <h3 className="font-bold text-foreground mb-3">Actions</h3>
+        {/* Action Controls Section */}
+        <Card className="p-5 border-border/50 shadow-sm rounded-3xl flex flex-col gap-0 bg-card">
+          <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/30">
+            <Sparkles size={14} className="text-accent" />
+            <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider">Production Controls</h3>
+          </div>
+
           <div className="space-y-3">
             {order.status === "placed" && (
               <>
                 <Button
-                  className="w-full gap-2"
+                  className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-accent hover:bg-accent/90 text-accent-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-accent/15 cursor-pointer"
                   disabled={isUpdating}
                   onClick={handleStartWork}
                 >
-                  <Play size={18} />
-                  {isUpdating ? "Updating…" : "Start Work"}
+                  <Play size={14} />
+                  {isUpdating ? "Initializing Workspace…" : "Start Production"}
                 </Button>
+                
                 <Button
-                  variant="destructive"
-                  className="w-full gap-2"
+                  variant="outline"
+                  className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider border-destructive/30 hover:border-destructive hover:bg-destructive/5 text-destructive flex items-center justify-center gap-1.5 cursor-pointer"
                   disabled={isUpdating}
                   onClick={() => setShowRejectModal(true)}
                 >
-                  <X size={18} />
-                  Reject Order
+                  <X size={14} />
+                  Reject Order / Return Stock
                 </Button>
               </>
             )}
@@ -206,41 +276,47 @@ export function EmployeeOrderWorkflow() {
             {order.status === "in_progress" && (
               <>
                 <Button
-                  className="w-full gap-2 bg-success hover:bg-success/90 text-success-foreground"
+                  className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-success hover:bg-success/90 text-success-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-success/15 cursor-pointer"
                   disabled={isUpdating}
                   onClick={handleMarkDone}
                 >
-                  <Check size={18} />
-                  {isUpdating ? "Updating…" : "Mark as Done"}
+                  <Check size={14} />
+                  {isUpdating ? "Completing Job…" : "Mark as Completed"}
                 </Button>
+                
                 <Button
-                  variant="destructive"
-                  className="w-full gap-2"
+                  variant="outline"
+                  className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider border-destructive/30 hover:border-destructive hover:bg-destructive/5 text-destructive flex items-center justify-center gap-1.5 cursor-pointer"
                   disabled={isUpdating}
                   onClick={() => setShowRejectModal(true)}
                 >
-                  <X size={18} />
-                  Reject Order
+                  <X size={14} />
+                  Reject & Mark Damaged
                 </Button>
               </>
             )}
 
             {order.status === "done" && (
               <Button
-                className="w-full gap-2"
+                className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-accent hover:bg-accent/90 text-accent-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-accent/15 cursor-pointer"
                 disabled={isUpdating}
                 onClick={handleShip}
               >
-                <Truck size={18} />
-                {isUpdating ? "Updating…" : "Mark as Shipped"}
+                <Truck size={14} />
+                {isUpdating ? "Processing Shipment…" : "Mark as Shipped"}
               </Button>
             )}
 
             {order.status === "shipped" && (
-              <div className="flex flex-col items-center py-6 text-center">
-                <Check className="text-success mb-2" size={40} />
-                <p className="text-sm text-muted-foreground">
-                  This order has been shipped
+              <div className="flex flex-col items-center py-6 text-center bg-secondary/35 rounded-2xl p-4">
+                <div className="w-12 h-12 bg-success/15 text-success rounded-xl flex items-center justify-center mb-2">
+                  <Check strokeWidth={3} size={22} />
+                </div>
+                <p className="font-extrabold text-foreground text-xs uppercase tracking-wider">
+                  Shipment Dispatched
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px] leading-relaxed">
+                  This door order has been manufactured and shipped to the client.
                 </p>
               </div>
             )}
@@ -248,72 +324,72 @@ export function EmployeeOrderWorkflow() {
         </Card>
       </main>
 
-      {/* Reject modal */}
+      {/* Reject Modal Sheet */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-2xl p-5 w-full max-w-md shadow-xl border border-border">
-            <h2 className="text-lg font-bold text-foreground mb-4">
-              Reject Order
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-card rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border/60 animate-[slideUp_0.3s_ease-out]">
+            <h2 className="text-sm font-extrabold text-foreground uppercase tracking-wider mb-4 pb-2 border-b border-border/30">
+              Reject Order Job
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-2">
-                  Reason
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Rejection Type
                 </label>
                 <div className="space-y-2">
                   {(["damaged", "other"] as const).map((r) => (
                     <button
                       key={r}
                       onClick={() => setRejectReason(r)}
-                      className={`w-full py-2.5 px-4 rounded-xl font-medium text-sm transition-all text-left border-2 ${
+                      className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all text-left border-2 cursor-pointer ${
                         rejectReason === r
-                          ? "bg-destructive/10 border-destructive text-destructive"
-                          : "bg-secondary text-secondary-foreground border-transparent"
+                          ? "bg-destructive/5 border-destructive text-destructive"
+                          : "bg-secondary text-secondary-foreground border-transparent hover:bg-secondary/70"
                       }`}
                     >
-                      {r === "damaged" ? "Damaged Inventory" : "Other Reason"}
+                      {r === "damaged" ? "⚠️ Damaged Inventory" : "ℹ️ Return to available stock"}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-2">
-                  Comment <span className="text-destructive">*</span>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Justification Comment <span className="text-destructive font-black">*</span>
                 </label>
                 <textarea
-                  placeholder="Provide detailed reason for rejection"
+                  placeholder="Provide explicit reasons for returning stock or marking it as damaged…"
                   value={rejectComment}
                   onChange={(e) => setRejectComment(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-input bg-input-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none text-sm"
+                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-[#FAF9F6]/40 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed"
                   rows={3}
                 />
               </div>
 
-              <div className="p-3 bg-secondary rounded-xl">
-                <p className="text-xs text-muted-foreground">
+              <div className="p-3 bg-secondary/65 border border-border/30 rounded-2xl">
+                <p className="text-[10px] text-muted-foreground leading-relaxed font-bold">
                   {rejectReason === "damaged"
-                    ? "⚠️ Items will be added to damaged inventory"
-                    : "ℹ️ Stock will be returned to available inventory"}
+                    ? "⚠️ Warning: Door items will be recorded under low-stock alerts / damaged logs."
+                    : "ℹ️ Note: Ordered doors will be returned back to the catalog's available inventory."}
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="h-10 rounded-xl flex-1 text-xs uppercase font-extrabold tracking-wider cursor-pointer"
                   onClick={() => setShowRejectModal(false)}
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="destructive"
-                  className="flex-1"
+                  className="h-10 rounded-xl flex-1 text-xs uppercase font-extrabold tracking-wider cursor-pointer shadow-sm shadow-destructive/10"
                   disabled={isUpdating}
                   onClick={handleReject}
                 >
-                  {isUpdating ? "Rejecting…" : "Reject"}
+                  {isUpdating ? "Rejecting…" : "Confirm Reject"}
                 </Button>
               </div>
             </div>

@@ -230,7 +230,13 @@ export function EmployeeManagement() {
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <Phone size={11} className="text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">{emp.phone}</span>
+                            <a
+                              href={`tel:${emp.phone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs text-muted-foreground hover:text-accent hover:underline cursor-pointer transition-colors font-mono"
+                            >
+                              {emp.phone}
+                            </a>
                           </div>
                         </div>
 
@@ -276,7 +282,13 @@ export function EmployeeManagement() {
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <Phone size={11} className="text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">{emp.phone}</span>
+                            <a
+                              href={`tel:${emp.phone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs text-muted-foreground hover:text-accent hover:underline cursor-pointer transition-colors font-mono"
+                            >
+                              {emp.phone}
+                            </a>
                           </div>
                         </div>
 
