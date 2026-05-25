@@ -139,15 +139,15 @@ export function LoginScreen() {
             </div>
             
             <div className="md:space-y-1">
-              <span className="text-[9px] uppercase tracking-[0.25em] text-accent font-black block">
+              <span className="text-xs uppercase tracking-[0.2em] text-accent font-black block">
                 DWARIK WORKSPACE
               </span>
-              <h1 className="text-2xl font-black tracking-tight text-[#4E342E] dark:text-[#F5EDE4]">
+              <h1 className="text-3xl font-black tracking-tight text-[#4E342E] dark:text-[#F5EDE4]">
                 Welcome Back
               </h1>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed text-center md:text-left">
-              Secure authorization portal. Sign in using your registered operator credentials.
+            <p className="text-sm text-muted-foreground leading-relaxed text-center md:text-left">
+              Sign in using your registered operator credentials.
             </p>
           </div>
 
@@ -155,12 +155,12 @@ export function LoginScreen() {
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Phone Field */}
             <div className="relative group">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-[#4E342E]/70 dark:text-accent/80 mb-2 group-focus-within:text-accent transition-colors">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[#4E342E]/70 dark:text-accent/80 mb-2 group-focus-within:text-accent transition-colors">
                 Phone Number
               </label>
               <div className="relative flex items-center bg-white dark:bg-[#231917]/50 border border-black/10 dark:border-white/5 focus-within:border-accent/80 focus-within:ring-2 focus-within:ring-accent/10 rounded-xl transition-all duration-200 shadow-sm">
                 <div className="pl-3.5 pr-2.5 text-muted-foreground group-focus-within:text-accent transition-colors">
-                  <Phone size={15} />
+                  <Phone size={16} />
                 </div>
                 <input
                   type="tel"
@@ -169,44 +169,35 @@ export function LoginScreen() {
                   onChange={(e) => setPhone(e.target.value)}
                   autoComplete="tel"
                   disabled={isLoading}
-                  className="w-full bg-transparent text-[#1E1E1E] dark:text-white placeholder-black/25 dark:placeholder-white/20 text-xs py-3.5 pr-4 outline-none border-none focus:ring-0 focus:outline-none font-medium"
+                  className="w-full bg-transparent text-[#1E1E1E] dark:text-white placeholder-black/25 dark:placeholder-white/20 text-sm py-4 pr-4 outline-none border-none focus:ring-0 focus:outline-none font-semibold"
                 />
               </div>
             </div>
 
             {/* Password Field */}
             <div className="relative group">
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-[#4E342E]/70 dark:text-accent/80 group-focus-within:text-accent transition-colors">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => toast.info("Demo account credentials can be loaded below.")}
-                  className="text-[9px] text-accent font-extrabold uppercase tracking-wider transition-colors outline-none cursor-pointer"
-                >
-                  Help?
-                </button>
-              </div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[#4E342E]/70 dark:text-accent/80 mb-2 group-focus-within:text-accent transition-colors">
+                Password
+              </label>
               <div className="relative flex items-center bg-white dark:bg-[#231917]/50 border border-black/10 dark:border-white/5 focus-within:border-accent/80 focus-within:ring-2 focus-within:ring-accent/10 rounded-xl transition-all duration-200 shadow-sm">
                 <div className="pl-3.5 pr-2.5 text-muted-foreground group-focus-within:text-accent transition-colors">
-                  <Lock size={15} />
+                  <Lock size={16} />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter secure password"
+                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   disabled={isLoading}
-                  className="w-full bg-transparent text-[#1E1E1E] dark:text-white placeholder-black/25 dark:placeholder-white/20 text-xs py-3.5 pr-3 outline-none border-none focus:ring-0 focus:outline-none font-medium"
+                  className="w-full bg-transparent text-[#1E1E1E] dark:text-white placeholder-black/25 dark:placeholder-white/20 text-sm py-4 pr-3 outline-none border-none focus:ring-0 focus:outline-none font-semibold"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="pr-3.5 text-muted-foreground hover:text-accent transition-colors outline-none shrink-0 cursor-pointer"
                 >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
@@ -215,11 +206,11 @@ export function LoginScreen() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full relative overflow-hidden group/btn bg-gradient-to-r from-accent to-[#DAB668] disabled:opacity-50 text-[#1A1210] font-extrabold text-[10px] uppercase tracking-widest h-11.5 rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-accent/15 mt-2"
+              className="w-full relative overflow-hidden group/btn bg-gradient-to-r from-accent to-[#DAB668] disabled:opacity-50 text-[#1A1210] font-black text-xs uppercase tracking-widest h-12 rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-accent/15 mt-2"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
-                  <svg className="animate-spin h-3.5 w-3.5 text-[#1A1210]" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-4 w-4 text-[#1A1210]" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -227,7 +218,7 @@ export function LoginScreen() {
                 </div>
               ) : (
                 <>
-                  <Sparkles size={13} className="text-[#1A1210] group-hover/btn:rotate-12 transition-transform" />
+                  <Sparkles size={14} className="text-[#1A1210] group-hover/btn:rotate-12 transition-transform" />
                   <span>Login</span>
                 </>
               )}
@@ -239,9 +230,9 @@ export function LoginScreen() {
           {/* Quick autofills */}
           <div className="pt-6 border-t border-black/5 dark:border-white/5 space-y-4">
             <div className="flex items-center gap-1.5 justify-center md:justify-start text-[#9E8070]/60">
-              <ShieldCheck size={12} className="text-accent" />
-              <span className="text-[8px] uppercase font-bold tracking-widest leading-none">
-                One-tap Secure Demo Access
+              <ShieldCheck size={14} className="text-accent" />
+              <span className="text-[10px] uppercase font-bold tracking-widest leading-none">
+                One-tap Demo Access
               </span>
             </div>
 
@@ -250,17 +241,17 @@ export function LoginScreen() {
               <button
                 type="button"
                 onClick={() => fillDemoCredentials("9876543210", "admin123")}
-                className="group/chip flex items-center gap-2 bg-white dark:bg-[#231917]/30 hover:bg-[#FAF9F6] dark:hover:bg-[#2E1F1A] active:scale-[0.97] border border-black/5 dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/30 p-2 rounded-xl text-left transition-all duration-200 cursor-pointer shadow-sm"
+                className="group/chip flex items-center gap-2 bg-white dark:bg-[#231917]/30 hover:bg-[#FAF9F6] dark:hover:bg-[#2E1F1A] active:scale-[0.97] border border-black/5 dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/30 p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer shadow-sm"
               >
-                <div className="w-7 h-7 rounded-lg bg-accent/15 group-hover/chip:bg-accent/25 flex items-center justify-center text-accent text-[10px] font-black transition-all shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-accent/15 group-hover/chip:bg-accent/25 flex items-center justify-center text-accent text-xs font-black transition-all shrink-0">
                   OW
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[9px] font-black text-foreground/80 group-hover/chip:text-accent transition-colors flex items-center gap-0.5">
+                  <div className="text-[10px] font-black text-foreground/80 group-hover/chip:text-accent transition-colors flex items-center gap-0.5">
                     Owner
-                    <ChevronRight size={8} className="opacity-40 group-hover/chip:translate-x-0.5 transition-transform" />
+                    <ChevronRight size={10} className="opacity-40 group-hover/chip:translate-x-0.5 transition-transform" />
                   </div>
-                  <div className="text-[8px] text-muted-foreground/60 truncate leading-none mt-0.5">Ashis</div>
+                  <div className="text-[9px] text-muted-foreground/60 truncate leading-none mt-0.5">Ashis</div>
                 </div>
               </button>
 
@@ -268,17 +259,17 @@ export function LoginScreen() {
               <button
                 type="button"
                 onClick={() => fillDemoCredentials("9876543211", "emp123")}
-                className="group/chip flex items-center gap-2 bg-white dark:bg-[#231917]/30 hover:bg-[#FAF9F6] dark:hover:bg-[#2E1F1A] active:scale-[0.97] border border-black/5 dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/30 p-2 rounded-xl text-left transition-all duration-200 cursor-pointer shadow-sm"
+                className="group/chip flex items-center gap-2 bg-white dark:bg-[#231917]/30 hover:bg-[#FAF9F6] dark:hover:bg-[#2E1F1A] active:scale-[0.97] border border-black/5 dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/30 p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer shadow-sm"
               >
-                <div className="w-7 h-7 rounded-lg bg-[#4E342E]/10 dark:bg-[#4E342E]/20 group-hover/chip:bg-[#4E342E]/20 dark:group-hover/chip:bg-[#4E342E]/40 flex items-center justify-center text-accent text-[10px] font-black transition-all shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#4E342E]/10 dark:bg-[#4E342E]/20 group-hover/chip:bg-[#4E342E]/20 dark:group-hover/chip:bg-[#4E342E]/40 flex items-center justify-center text-accent text-xs font-black transition-all shrink-0">
                   EM
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[9px] font-black text-foreground/80 group-hover/chip:text-accent transition-colors flex items-center gap-0.5">
+                  <div className="text-[10px] font-black text-foreground/80 group-hover/chip:text-accent transition-colors flex items-center gap-0.5">
                     Staff
-                    <ChevronRight size={8} className="opacity-40 group-hover/chip:translate-x-0.5 transition-transform" />
+                    <ChevronRight size={10} className="opacity-40 group-hover/chip:translate-x-0.5 transition-transform" />
                   </div>
-                  <div className="text-[8px] text-muted-foreground/60 truncate leading-none mt-0.5">Operator</div>
+                  <div className="text-[9px] text-muted-foreground/60 truncate leading-none mt-0.5">Operator</div>
                 </div>
               </button>
             </div>

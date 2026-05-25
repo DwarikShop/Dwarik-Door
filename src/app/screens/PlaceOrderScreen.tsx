@@ -69,7 +69,7 @@ const emptyItem = (): OrderItem => ({
 // ── Main screen ───────────────────────────────────────────────────────────────
 export function PlaceOrderScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { products, isLoading: productsLoading } = useProducts();
 
   // Order type toggle
@@ -187,6 +187,11 @@ export function PlaceOrderScreen() {
           credentials: "include",
           body: JSON.stringify({ customerName, customerPhone }),
         });
+        if (grpRes.status === 401) {
+          logout();
+          toast.error("Session expired. Please log in again.");
+          return;
+        }
         if (!grpRes.ok) {
           const err = await grpRes.json();
           toast.error(err.error || "Failed to create order group");
@@ -220,6 +225,11 @@ export function PlaceOrderScreen() {
             changedBy: user?.id || "owner",
           }),
         });
+        if (r.status === 401) {
+          logout();
+          toast.error("Session expired. Please log in again.");
+          return;
+        }
         const data = await r.json();
         if (!r.ok) {
           toast.error(data.error || "Failed to place order");
@@ -229,12 +239,17 @@ export function PlaceOrderScreen() {
 
       // Update group totalItems
       if (groupId) {
-        await fetch(`/api/order-groups/${groupId}`, {
+        const grpUpdRes = await fetch(`/api/order-groups/${groupId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ totalItems: items.length }),
         });
+        if (grpUpdRes.status === 401) {
+          logout();
+          toast.error("Session expired. Please log in again.");
+          return;
+        }
       }
 
       toast.success(

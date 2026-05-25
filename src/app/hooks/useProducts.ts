@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { products as mockProducts } from "../data/mockData";
 import type { TProduct } from "../models/types";
+import { useAuth } from "../context/AuthContext";
 
 export interface AddProductInput {
   id?: string;
@@ -46,11 +47,16 @@ export function useProducts(): UseProductsResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { logout } = useAuth();
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/products", { credentials: "include" });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (!res.ok) throw new Error();
       setProducts(await res.json());
     } catch {
@@ -58,7 +64,7 @@ export function useProducts(): UseProductsResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     fetchProducts();
@@ -73,6 +79,10 @@ export function useProducts(): UseProductsResult {
         const res = await fetch(`/api/products/check-id?${params}`, {
           credentials: "include",
         });
+        if (res.status === 401) {
+          logout();
+          return false;
+        }
         if (!res.ok) return false;
         const data = await res.json();
         return data.exists as boolean;
@@ -83,7 +93,7 @@ export function useProducts(): UseProductsResult {
         );
       }
     },
-    [products],
+    [products, logout],
   );
 
   // ── Add ───────────────────────────────────────────────────────────────────
@@ -97,6 +107,10 @@ export function useProducts(): UseProductsResult {
         credentials: "include",
         body: JSON.stringify(input),
       });
+      if (res.status === 401) {
+        logout();
+        return { product: null, error: "Session expired. Please log in again." };
+      }
       const data = await res.json();
       if (!res.ok)
         return { product: null, error: data.error || "Failed to add product" };
@@ -107,7 +121,7 @@ export function useProducts(): UseProductsResult {
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [logout]);
 
   // ── Update ────────────────────────────────────────────────────────────────
   const updateProduct = useCallback(
@@ -121,6 +135,10 @@ export function useProducts(): UseProductsResult {
           credentials: "include",
           body: JSON.stringify(input),
         });
+        if (res.status === 401) {
+          logout();
+          return { product: null, error: "Session expired. Please log in again." };
+        }
         const data = await res.json();
         if (!res.ok)
           return {
@@ -139,7 +157,7 @@ export function useProducts(): UseProductsResult {
         setIsSubmitting(false);
       }
     },
-    [],
+    [logout],
   );
 
   // ── Delete ────────────────────────────────────────────────────────────────
@@ -150,6 +168,10 @@ export function useProducts(): UseProductsResult {
         method: "DELETE",
         credentials: "include",
       });
+      if (res.status === 401) {
+        logout();
+        return false;
+      }
       if (!res.ok) return false;
       setProducts((prev) => prev.filter((p) => p.id !== id));
       return true;
@@ -158,7 +180,7 @@ export function useProducts(): UseProductsResult {
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [logout]);
 
   return {
     products,

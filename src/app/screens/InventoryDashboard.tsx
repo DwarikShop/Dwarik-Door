@@ -67,22 +67,22 @@ function ProductModal({
         <div className="flex items-center justify-between mb-5 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">
-              <Sparkles size={16} className="text-accent" />
+              <Sparkles size={18} className="text-accent" />
             </div>
-            <h2 className="text-sm font-extrabold text-foreground">{title}</h2>
+            <h2 className="text-base font-extrabold text-foreground">{title}</h2>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 hover:bg-secondary rounded-full text-muted-foreground hover:text-foreground transition-colors outline-none cursor-pointer"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3.5">
           {/* Product ID */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Product ID * <span className="font-normal text-muted-foreground/60">(e.g. DW-009)</span>
             </label>
             <Input
@@ -94,12 +94,12 @@ function ProductModal({
               }`}
               required
             />
-            {idError && <p className="text-xs font-medium text-destructive mt-1">{idError}</p>}
+            {idError && <p className="text-sm font-medium text-destructive mt-1">{idError}</p>}
           </div>
 
           {/* Product Name */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Product Name *
             </label>
             <Input
@@ -113,7 +113,7 @@ function ProductModal({
 
           {/* Category */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Category *
             </label>
             <Input
@@ -127,7 +127,7 @@ function ProductModal({
 
           {/* Image URL */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Image URL
             </label>
             <Input
@@ -141,7 +141,7 @@ function ProductModal({
           {/* Price & Stock Grid */}
           <div className="grid grid-cols-2 gap-3.5">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Price (₹) *
               </label>
               <Input
@@ -155,7 +155,7 @@ function ProductModal({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Stock (units)
               </label>
               <Input
@@ -171,7 +171,7 @@ function ProductModal({
 
           {/* Damaged Units */}
           <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Damaged units
             </label>
             <Input
@@ -190,17 +190,17 @@ function ProductModal({
               <Button
                 type="button"
                 variant="destructive"
-                className="h-10 rounded-xl flex items-center justify-center gap-1.5 flex-1 cursor-pointer font-bold text-xs"
+                className="h-10 rounded-xl flex items-center justify-center gap-1.5 flex-1 cursor-pointer font-bold text-sm"
                 disabled={isSubmitting}
                 onClick={onDelete}
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
                 <span>Delete</span>
               </Button>
             )}
             <Button
               type="submit"
-              className="h-10 rounded-xl flex-1 cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-xs shadow-lg shadow-accent/10"
+              className="h-10 rounded-xl flex-1 cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-sm shadow-lg shadow-accent/10"
               disabled={isSubmitting || !!idError}
             >
               {isSubmitting ? "Saving…" : title}
@@ -421,10 +421,10 @@ export function InventoryDashboard() {
         <div className="max-w-lg mx-auto px-4 pt-5 pb-3">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
+              <p className="text-xs text-primary-foreground/75 font-extrabold uppercase tracking-widest leading-none">
                 Dwarik Door
               </p>
-              <h1 className="text-xl font-bold tracking-tight mt-1">Inventory</h1>
+              <h1 className="text-2xl font-black tracking-tight mt-1">Inventory</h1>
             </div>
             
             <div className="flex items-center gap-1.5">
@@ -434,8 +434,8 @@ export function InventoryDashboard() {
                   className="flex items-center gap-1 bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground px-2.5 py-1 rounded-full active:scale-95 transition-all cursor-pointer border border-primary-foreground/5"
                   aria-label="Demand Analysis"
                 >
-                  <TrendingUp size={11} />
-                  <span className="text-[9px] uppercase font-bold tracking-wider">Demand</span>
+                  <TrendingUp size={13} />
+                  <span className="text-xs uppercase font-bold tracking-wider">Demand</span>
                 </button>
               )}
               {isOwner && (
@@ -444,7 +444,7 @@ export function InventoryDashboard() {
                   className="p-1.5 bg-accent text-accent-foreground hover:bg-accent/90 active:scale-90 rounded-full transition-all cursor-pointer shadow"
                   aria-label="Add product"
                 >
-                  <Plus size={15} />
+                  <Plus size={18} />
                 </button>
               )}
             </div>
@@ -454,14 +454,14 @@ export function InventoryDashboard() {
           <div className="relative group">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 group-focus-within:text-primary-foreground transition-colors"
-              size={14}
+              size={16}
             />
             <input
               type="text"
               placeholder="Search catalog by name, ID or category…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-8.5 pl-9 pr-8 rounded-xl bg-primary-foreground/10 border border-primary-foreground/5 text-primary-foreground placeholder:text-primary-foreground/40 focus:outline-none focus:border-accent focus:ring-1.5 focus:ring-accent/10 text-xs transition-all"
+              className="w-full h-10 pl-10 pr-8 rounded-xl bg-primary-foreground/10 border border-primary-foreground/5 text-primary-foreground placeholder:text-primary-foreground/40 focus:outline-none focus:border-accent focus:ring-1.5 focus:ring-accent/10 text-sm transition-all"
             />
             {searchTerm && (
               <button
@@ -469,7 +469,7 @@ export function InventoryDashboard() {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-primary-foreground/10 rounded-full text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-pointer"
                 aria-label="Clear search"
               >
-                <X size={11} />
+                <X size={13} />
               </button>
             )}
           </div>
@@ -483,7 +483,7 @@ export function InventoryDashboard() {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
+                className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
                   isSelected
                     ? "bg-accent text-accent-foreground shadow-sm font-extrabold"
                     : "bg-primary-foreground/10 text-primary-foreground/75 hover:bg-primary-foreground/20 border border-transparent"
@@ -491,7 +491,7 @@ export function InventoryDashboard() {
               >
                 {f.label}
                 <span
-                  className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[8px] font-bold ${
+                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold ${
                     isSelected
                       ? "bg-accent-foreground/20 text-accent-foreground"
                       : "bg-primary-foreground/20 text-primary-foreground/50"
@@ -546,15 +546,15 @@ export function InventoryDashboard() {
             return (
               <div
                 key={s.label}
-                className={`bg-card border ${s.border} rounded-xl py-2 px-1 flex flex-col items-center gap-1 shadow-sm`}
+                className={`bg-card border ${s.border} rounded-xl py-2.5 px-1 flex flex-col items-center gap-1 shadow-sm`}
               >
                 <div className={`p-1 rounded-lg ${s.bg}`}>
-                  <Icon size={11} className={s.color} />
+                  <Icon size={14} className={s.color} />
                 </div>
-                <p className={`text-base font-black leading-none ${s.color}`}>
+                <p className={`text-lg font-black leading-none ${s.color}`}>
                   {s.value}
                 </p>
-                <p className="text-[8px] uppercase tracking-wider font-extrabold text-muted-foreground text-center">
+                <p className="text-[10px] uppercase tracking-wider font-extrabold text-muted-foreground text-center">
                   {s.label}
                 </p>
               </div>
@@ -564,15 +564,15 @@ export function InventoryDashboard() {
       </div>
 
       {/* High-density compact catalog list */}
-      <main className="max-w-lg mx-auto px-4 pt-3.5 pb-6 space-y-2">
+      <main className="max-w-lg mx-auto px-4 pt-3.5 pb-6 space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground/60">
+          <p className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground/70">
             {filteredProducts.length} Item{filteredProducts.length !== 1 ? "s" : ""} active
           </p>
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="text-[9px] text-accent font-extrabold uppercase tracking-widest cursor-pointer"
+              className="text-xs text-accent font-black uppercase tracking-wider cursor-pointer"
             >
               Reset
             </button>
@@ -581,21 +581,21 @@ export function InventoryDashboard() {
 
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 text-center bg-card rounded-2xl border border-border/40 p-6 shadow-sm">
-            <div className="w-12 h-12 bg-secondary/80 rounded-xl flex items-center justify-center mb-3 text-muted-foreground">
-              <Package size={22} />
+            <div className="w-14 h-14 bg-secondary/80 rounded-xl flex items-center justify-center mb-3 text-muted-foreground">
+              <Package size={26} />
             </div>
-            <p className="font-extrabold text-foreground mb-0.5 text-xs">
+            <p className="font-extrabold text-foreground mb-1 text-sm">
               No matching products
             </p>
-            <p className="text-[10px] text-muted-foreground max-w-[180px]">
+            <p className="text-xs text-muted-foreground max-w-[200px] mb-3">
               Try adjusting your query or filter tags.
             </p>
             {isOwner && (
               <button
                 onClick={openAdd}
-                className="mt-3.5 flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-[10px] font-bold uppercase tracking-wider active:scale-95 shadow cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-xs font-bold uppercase tracking-wider active:scale-95 shadow cursor-pointer"
               >
-                <Plus size={11} /> Add Product
+                <Plus size={13} /> Add Product
               </button>
             )}
           </div>
@@ -606,30 +606,16 @@ export function InventoryDashboard() {
               available > 10 ? "available" : available > 0 ? "low" : "out";
             const hasDamaged = product.damaged > 0;
             
-            // Status colors
-            const statusDot =
-              stockStatus === "available"
-                ? "bg-success"
-                : stockStatus === "low"
-                  ? "bg-warning"
-                  : "bg-destructive";
-            const statusTextColor =
-              stockStatus === "available"
-                ? "text-success"
-                : stockStatus === "low"
-                  ? "text-warning"
-                  : "text-destructive";
-
             return (
               <div
                 key={product.id}
                 className="bg-card border border-border/40 hover:border-border/80 rounded-2xl overflow-hidden shadow-sm transition-all duration-200"
               >
                 {/* Horizontal row layout */}
-                <div className="flex items-center gap-3 p-2.5">
+                <div className="flex items-center gap-3.5 p-3">
                   
                   {/* Small avatar thumbnail */}
-                  <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-border/40 bg-secondary/30 relative">
+                  <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border/40 bg-secondary/30 relative">
                     <img
                       src={product.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
                       alt={product.name}
@@ -637,56 +623,53 @@ export function InventoryDashboard() {
                     />
                   </div>
 
-                  {/* Product Details (Category, ID, Name, Price) */}
+                  {/* Product Details (Category, ID, Name) */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[8px] uppercase tracking-wider font-black text-accent truncate max-w-[70px]">
+                      <span className="text-[10px] uppercase tracking-wider font-black text-accent truncate max-w-[90px]">
                         {product.category}
                       </span>
                       <span className="w-1 h-1 rounded-full bg-border" />
-                      <span className="text-[8px] font-mono text-muted-foreground/75">
+                      <span className="text-xs font-mono text-muted-foreground/75">
                         {product.id}
                       </span>
                     </div>
-                    <h3 className="font-extrabold text-foreground text-xs leading-tight truncate mt-0.5">
+                    <h3 className="font-extrabold text-foreground text-sm leading-tight truncate mt-1">
                       {product.name}
                     </h3>
-                    <p className="text-[11px] font-black text-foreground/80 mt-0.5">
-                      ₹{product.price.toLocaleString("en-IN")}
-                    </p>
                   </div>
 
                   {/* Action Stock counts */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     {/* Available pill */}
-                    <div className="flex flex-col items-center bg-success/5 border border-success/15 px-1.5 py-0.5 rounded-lg min-w-[32px]">
-                      <span className="text-[11px] font-black text-success leading-none">{available}</span>
-                      <span className="text-[6px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Avail</span>
+                    <div className="flex flex-col items-center bg-success/5 border border-success/15 px-2 py-1 rounded-lg min-w-[36px]">
+                      <span className="text-xs font-black text-success leading-none">{available}</span>
+                      <span className="text-[8px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Avail</span>
                     </div>
                     
                     {/* Reserved pill */}
-                    <div className="flex flex-col items-center bg-info/5 border border-info/15 px-1.5 py-0.5 rounded-lg min-w-[32px]">
-                      <span className="text-[11px] font-black text-info leading-none">{product.reserved}</span>
-                      <span className="text-[6px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Resv</span>
+                    <div className="flex flex-col items-center bg-info/5 border border-info/15 px-2 py-1 rounded-lg min-w-[36px]">
+                      <span className="text-xs font-black text-info leading-none">{product.reserved}</span>
+                      <span className="text-[8px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Resv</span>
                     </div>
 
                     {/* Damaged pill — only show if > 0 to save space */}
                     {product.damaged > 0 ? (
-                      <div className="flex flex-col items-center bg-destructive/5 border border-destructive/15 px-1.5 py-0.5 rounded-lg min-w-[32px]">
-                        <span className="text-[11px] font-black text-destructive leading-none">{product.damaged}</span>
-                        <span className="text-[6px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Dmg</span>
+                      <div className="flex flex-col items-center bg-destructive/5 border border-destructive/15 px-2 py-1 rounded-lg min-w-[36px]">
+                        <span className="text-xs font-black text-destructive leading-none">{product.damaged}</span>
+                        <span className="text-[8px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Dmg</span>
                       </div>
                     ) : (
-                      <div className="w-[32px] h-0 shrink-0" /> // Spacer block to align
+                      <div className="w-[36px] h-0 shrink-0" /> // Spacer block to align
                     )}
 
                     {isOwner && (
                       <button
                         onClick={() => openEdit(product)}
-                        className="p-1 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer ml-0.5"
+                        className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer ml-0.5"
                         aria-label={`Edit ${product.name}`}
                       >
-                        <Edit2 size={11} />
+                        <Edit2 size={13} />
                       </button>
                     )}
                   </div>
@@ -695,7 +678,7 @@ export function InventoryDashboard() {
                 {/* Subtitle warning strip (very tight & clean) */}
                 {(stockStatus !== "available" || hasDamaged) && (
                   <div
-                    className={`flex items-center gap-1.5 px-3 py-1 border-t border-border/30 text-[8px] font-bold uppercase tracking-wider ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 border-t border-border/30 text-[10px] font-bold uppercase tracking-wider ${
                       stockStatus === "out"
                         ? "bg-destructive/5 text-destructive"
                         : stockStatus === "low"
@@ -703,7 +686,7 @@ export function InventoryDashboard() {
                           : "bg-orange-500/5 text-orange-500"
                     }`}
                   >
-                    <span className="w-1 h-1 rounded-full bg-current shrink-0 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0 animate-pulse" />
                     <span className="truncate">
                       {stockStatus === "out"
                         ? "Out of stock"

@@ -126,14 +126,14 @@ export function OwnerDashboard() {
       <header className="bg-primary text-primary-foreground px-4 pt-8 pb-5 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto flex items-start justify-between">
           <div>
-            <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none mb-1">
+            <p className="text-xs text-primary-foreground/75 font-extrabold uppercase tracking-widest leading-none mb-1.5">
               {greeting()},
             </p>
-            <h1 className="text-xl font-black tracking-tight leading-none text-primary-foreground flex items-center gap-1.5">
+            <h1 className="text-2xl font-black tracking-tight leading-none text-primary-foreground flex items-center gap-1.5">
               <span>{user?.name?.split(" ")[0] || "Owner"}</span>
-              <Sparkles size={14} className="text-accent animate-pulse" />
+              <Sparkles size={18} className="text-accent animate-pulse" />
             </h1>
-            <p className="text-[10px] text-[#DAB668] font-bold mt-2">
+            <p className="text-xs text-[#DAB668] font-bold mt-2.5">
               {fmtDate()}
             </p>
           </div>
@@ -143,7 +143,7 @@ export function OwnerDashboard() {
             onClick={() => setShowNotifications(true)}
             className="relative p-2.5 bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-full active:scale-90 transition-all cursor-pointer border border-primary-foreground/5"
           >
-            <Bell size={18} />
+            <Bell size={20} />
             {hasAlerts && (
               <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full animate-ping" />
             )}
@@ -162,11 +162,11 @@ export function OwnerDashboard() {
                 className="flex-1 flex items-center gap-3 bg-destructive/5 border border-destructive/15 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
               >
                 <div className="p-2 bg-destructive/10 rounded-xl shrink-0">
-                  <AlertTriangle className="text-destructive animate-pulse" size={15} />
+                  <AlertTriangle className="text-destructive animate-pulse" size={18} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] uppercase font-bold text-destructive/70 tracking-wider">Damaged Alert</p>
-                  <p className="text-xs font-black text-destructive leading-tight mt-0.5">
+                  <p className="text-[11px] uppercase font-extrabold text-destructive/85 tracking-wider">Damaged Alert</p>
+                  <p className="text-sm font-black text-destructive leading-tight mt-0.5">
                     {stats.damaged} units
                   </p>
                 </div>
@@ -179,11 +179,11 @@ export function OwnerDashboard() {
                 className="flex-1 flex items-center gap-3 bg-warning/5 border border-warning/15 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
               >
                 <div className="p-2 bg-warning/10 rounded-xl shrink-0">
-                  <Package className="text-warning animate-pulse" size={15} />
+                  <Package className="text-warning animate-pulse" size={18} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] uppercase font-bold text-warning/70 tracking-wider">Low Stock Alert</p>
-                  <p className="text-xs font-black text-warning leading-tight mt-0.5">
+                  <p className="text-[11px] uppercase font-extrabold text-warning/85 tracking-wider">Low Stock Alert</p>
+                  <p className="text-sm font-black text-warning leading-tight mt-0.5">
                     {stats.lowInventory} product{stats.lowInventory > 1 ? "s" : ""}
                   </p>
                 </div>
@@ -195,16 +195,16 @@ export function OwnerDashboard() {
         {/* ── Section 2: Today's Pulse ── */}
         <section className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Activity size={12} className="text-accent" />
-              <h2 className="text-[10px] font-extrabold uppercase tracking-widest">Today's Pulse</h2>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Activity size={14} className="text-accent" />
+              <h2 className="text-xs font-black uppercase tracking-wider">Today's Pulse</h2>
             </div>
             
             <button
               onClick={() => router.push("/orders")}
-              className="text-[10px] text-accent font-extrabold uppercase tracking-widest flex items-center gap-0.5 cursor-pointer"
+              className="text-xs text-accent font-black uppercase tracking-wider flex items-center gap-0.5 cursor-pointer"
             >
-              All orders <ChevronRight size={11} />
+              All orders <ChevronRight size={12} />
             </button>
           </div>
 
@@ -220,14 +220,14 @@ export function OwnerDashboard() {
                     className="flex flex-col items-center gap-1.5 active:scale-95 transition-all p-1 cursor-pointer"
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.bg}`}
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}
                     >
-                      <Icon size={16} className={s.color} />
+                      <Icon size={18} className={s.color} />
                     </div>
-                    <p className={`text-base font-black leading-none ${s.color}`}>
+                    <p className={`text-lg font-black leading-none ${s.color}`}>
                       {s.value}
                     </p>
-                    <p className="text-[9px] uppercase tracking-wide font-extrabold text-muted-foreground text-center">
+                    <p className="text-[10px] uppercase tracking-wide font-extrabold text-muted-foreground text-center">
                       {s.label}
                     </p>
                   </button>
@@ -240,23 +240,23 @@ export function OwnerDashboard() {
         {/* ── Section 3: Recent Orders ── */}
         <section className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Inbox size={12} className="text-accent" />
-              <h2 className="text-[10px] font-extrabold uppercase tracking-widest">Recent Activity</h2>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Inbox size={14} className="text-accent" />
+              <h2 className="text-xs font-black uppercase tracking-wider">Recent Activity</h2>
             </div>
             
             <button
               onClick={() => router.push("/orders")}
-              className="text-[10px] text-accent font-extrabold uppercase tracking-widest flex items-center gap-0.5 cursor-pointer"
+              className="text-xs text-accent font-black uppercase tracking-wider flex items-center gap-0.5 cursor-pointer"
             >
-              View all <ChevronRight size={11} />
+              View all <ChevronRight size={12} />
             </button>
           </div>
 
           {recentOrders.length === 0 ? (
             <div className="bg-card border border-border/40 rounded-3xl p-10 text-center shadow-sm">
-              <Package size={22} className="text-muted-foreground/60 mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground font-semibold">No active orders found</p>
+              <Package size={26} className="text-muted-foreground/60 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground font-bold">No active orders found</p>
             </div>
           ) : (
             <div className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-sm divide-y divide-border/20">
@@ -266,31 +266,31 @@ export function OwnerDashboard() {
                   <button
                     key={order.id}
                     onClick={() => router.push(`/orders/${order.id}`)}
-                    className="w-full flex items-center gap-3 px-3.5 py-3 text-left hover:bg-secondary/35 active:bg-secondary/50 transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-3 px-3.5 py-3.5 text-left hover:bg-secondary/35 active:bg-secondary/50 transition-colors cursor-pointer"
                   >
                     {/* Compact Image with status indicator */}
                     <div className="relative shrink-0">
                       <img
                         src={order.productImage || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
                         alt={order.productName}
-                        className="w-12 h-12 rounded-xl object-cover border border-border/30 bg-secondary"
+                        className="w-14 h-14 rounded-xl object-cover border border-border/30 bg-secondary"
                       />
                       <span
-                        className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${meta.dot}`}
+                        className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${meta.dot}`}
                       />
                     </div>
 
                     {/* Text */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-xs font-extrabold text-foreground truncate leading-tight">
+                      <h3 className="text-sm font-extrabold text-foreground truncate leading-tight">
                         {order.productName}
                       </h3>
-                      <div className="flex items-center gap-1.5 mt-1 leading-none">
-                        <span className="text-[9px] font-mono text-muted-foreground/80">
+                      <div className="flex items-center gap-1.5 mt-1.5 leading-none">
+                        <span className="text-xs font-mono text-muted-foreground/80">
                           {order.id}
                         </span>
                         <span className="w-1 h-1 rounded-full bg-border inline-block shrink-0" />
-                        <span className="text-[9px] font-bold text-accent">
+                        <span className="text-xs font-bold text-accent">
                           Qty: {order.quantity}
                         </span>
                       </div>
@@ -299,12 +299,12 @@ export function OwnerDashboard() {
                     {/* Status badge */}
                     <div className="flex items-center gap-1 shrink-0">
                       <span
-                        className={`text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full font-black ${meta.pill}`}
+                        className={`text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full font-black ${meta.pill}`}
                       >
                         {meta.label}
                       </span>
                       <ChevronRight
-                        size={12}
+                        size={14}
                         className="text-muted-foreground/40"
                       />
                     </div>
@@ -338,14 +338,14 @@ export function OwnerDashboard() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/30">
               <div className="flex items-center gap-1.5">
-                <Bell size={16} className="text-accent animate-bounce" />
-                <h2 className="text-sm font-extrabold text-foreground uppercase tracking-wider">
+                <Bell size={18} className="text-accent animate-bounce" />
+                <h2 className="text-base font-extrabold text-foreground uppercase tracking-wider">
                   Live Notifications
                 </h2>
               </div>
               <button
                 onClick={() => setShowNotifications(false)}
-                className="text-[10px] text-accent font-extrabold uppercase tracking-widest cursor-pointer"
+                className="text-xs text-accent font-black uppercase tracking-wider cursor-pointer"
               >
                 Done
               </button>
@@ -356,11 +356,11 @@ export function OwnerDashboard() {
               {/* No notifications */}
               {!hasAlerts && stats.pending === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-secondary/30 rounded-2xl p-6">
-                  <Bell size={28} className="text-muted-foreground/60 mb-2" />
-                  <p className="font-extrabold text-foreground text-xs uppercase tracking-wider">
+                  <Bell size={32} className="text-muted-foreground/60 mb-2" />
+                  <p className="font-extrabold text-foreground text-sm uppercase tracking-wider">
                     All updates clear
                   </p>
-                  <p className="text-[10px] text-muted-foreground max-w-[200px] mt-1 leading-relaxed">
+                  <p className="text-xs text-muted-foreground max-w-[240px] mt-1 leading-relaxed">
                     No urgent pending orders or inventory alerts reported.
                   </p>
                 </div>
@@ -376,13 +376,13 @@ export function OwnerDashboard() {
                   className="w-full flex items-start gap-3 p-3.5 bg-destructive/5 border border-destructive/15 rounded-2xl text-left active:scale-[0.98] transition-all cursor-pointer"
                 >
                   <div className="p-2 bg-destructive/10 rounded-xl shrink-0 mt-0.5">
-                    <AlertTriangle className="text-destructive" size={14} />
+                    <AlertTriangle className="text-destructive" size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs uppercase font-extrabold text-destructive tracking-wider">
+                    <p className="text-sm uppercase font-extrabold text-destructive tracking-wider">
                       Damaged Inventory
                     </p>
-                    <p className="text-[10px] text-destructive/70 mt-1 leading-snug">
+                    <p className="text-xs text-destructive/70 mt-1 leading-snug">
                       {stats.damaged} door unit{stats.damaged > 1 ? "s" : ""} marked as damaged. Action required to re-allocate or update status.
                     </p>
                   </div>
@@ -399,13 +399,13 @@ export function OwnerDashboard() {
                   className="w-full flex items-start gap-3 p-3.5 bg-warning/5 border border-warning/15 rounded-2xl text-left active:scale-[0.98] transition-all cursor-pointer"
                 >
                   <div className="p-2 bg-warning/10 rounded-xl shrink-0 mt-0.5">
-                    <Package className="text-warning" size={14} />
+                    <Package className="text-warning" size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs uppercase font-extrabold text-warning tracking-wider">
+                    <p className="text-sm uppercase font-extrabold text-warning tracking-wider">
                       Low stock catalog Alert
                     </p>
-                    <p className="text-[10px] text-warning/70 mt-1 leading-snug">
+                    <p className="text-xs text-warning/70 mt-1 leading-snug">
                       {stats.lowInventory} door catalog item{stats.lowInventory > 1 ? "s are" : " is"} running below warning threshold (10 units).
                     </p>
                   </div>
@@ -422,13 +422,13 @@ export function OwnerDashboard() {
                   className="w-full flex items-start gap-3 p-3.5 bg-info/5 border border-info/15 rounded-2xl text-left active:scale-[0.98] transition-all cursor-pointer"
                 >
                   <div className="p-2 bg-info/10 rounded-xl shrink-0 mt-0.5">
-                    <Clock className="text-info" size={14} />
+                    <Clock className="text-info" size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs uppercase font-extrabold text-info tracking-wider">
+                    <p className="text-sm uppercase font-extrabold text-info tracking-wider">
                       New Orders Placed
                     </p>
-                    <p className="text-[10px] text-info/70 mt-1 leading-snug">
+                    <p className="text-xs text-info/70 mt-1 leading-snug">
                       {stats.pending} order{stats.pending > 1 ? "s are" : " is"} waiting in the placements log to be processed by operators.
                     </p>
                   </div>
@@ -445,13 +445,13 @@ export function OwnerDashboard() {
                   className="w-full flex items-start gap-3 p-3.5 bg-success/5 border border-success/15 rounded-2xl text-left active:scale-[0.98] transition-all cursor-pointer"
                 >
                   <div className="p-2 bg-success/10 rounded-xl shrink-0 mt-0.5">
-                    <CheckCircle2 className="text-success" size={14} />
+                    <CheckCircle2 className="text-success" size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs uppercase font-extrabold text-success tracking-wider">
+                    <p className="text-sm uppercase font-extrabold text-success tracking-wider">
                       Ready for Shipment
                     </p>
-                    <p className="text-[10px] text-success/70 mt-1 leading-snug">
+                    <p className="text-xs text-success/70 mt-1 leading-snug">
                       {stats.done} door order{stats.done > 1 ? "s are" : " is"} completed and waiting to be marked as shipped to clientes.
                     </p>
                   </div>

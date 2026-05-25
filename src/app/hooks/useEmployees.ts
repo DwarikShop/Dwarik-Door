@@ -13,6 +13,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { employees as mockEmployees } from "../data/mockData";
 import type { TEmployee, UserRole } from "../models/types";
+import { useAuth } from "../context/AuthContext";
 
 // Safe employee type — never includes password
 export type SafeEmployee = Omit<TEmployee, "password">;
@@ -55,6 +56,7 @@ export function useEmployees(): UseEmployeesResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { logout } = useAuth();
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -63,6 +65,10 @@ export function useEmployees(): UseEmployeesResult {
     setError(null);
     try {
       const res = await fetch("/api/employees", { credentials: "include" });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: SafeEmployee[] = await res.json();
       setEmployees(data);
@@ -72,7 +78,7 @@ export function useEmployees(): UseEmployeesResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     fetchEmployees();
@@ -91,6 +97,11 @@ export function useEmployees(): UseEmployeesResult {
           body: JSON.stringify(input),
         });
 
+        if (res.status === 401) {
+          logout();
+          throw new Error("Session expired. Please log in again.");
+        }
+
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || "Failed to add employee");
@@ -108,7 +119,7 @@ export function useEmployees(): UseEmployeesResult {
         setIsSubmitting(false);
       }
     },
-    [],
+    [logout],
   );
 
   // ── Update ────────────────────────────────────────────────────────────────
@@ -127,6 +138,11 @@ export function useEmployees(): UseEmployeesResult {
           body: JSON.stringify(input),
         });
 
+        if (res.status === 401) {
+          logout();
+          throw new Error("Session expired. Please log in again.");
+        }
+
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || "Failed to update employee");
@@ -144,7 +160,7 @@ export function useEmployees(): UseEmployeesResult {
         setIsSubmitting(false);
       }
     },
-    [],
+    [logout],
   );
 
   // ── Change password ───────────────────────────────────────────────────────
@@ -159,6 +175,12 @@ export function useEmployees(): UseEmployeesResult {
           credentials: "include",
           body: JSON.stringify(input),
         });
+
+        if (res.status === 401) {
+          logout();
+          throw new Error("Session expired. Please log in again.");
+        }
+
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.error || "Failed to change password");
@@ -172,7 +194,7 @@ export function useEmployees(): UseEmployeesResult {
         setIsSubmitting(false);
       }
     },
-    [],
+    [logout],
   );
 
   // ── Delete ────────────────────────────────────────────────────────────────
@@ -184,6 +206,11 @@ export function useEmployees(): UseEmployeesResult {
         method: "DELETE",
         credentials: "include",
       });
+
+      if (res.status === 401) {
+        logout();
+        throw new Error("Session expired. Please log in again.");
+      }
 
       if (!res.ok) {
         const err = await res.json();
@@ -200,7 +227,7 @@ export function useEmployees(): UseEmployeesResult {
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [logout]);
 
   return {
     employees,

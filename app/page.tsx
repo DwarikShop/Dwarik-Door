@@ -1,5 +1,5 @@
-import { SplashScreen } from "@/app/screens/SplashScreen";
+import { PublicHome } from "@/app/screens/PublicHome";
 
 export default function Page() {
-  return <SplashScreen />;
+  return <PublicHome />;
 }

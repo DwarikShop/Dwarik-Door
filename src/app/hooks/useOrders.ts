@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { orders as mockOrders } from "../data/mockData";
 import type { TOrder } from "../models/types";
+import { useAuth } from "../context/AuthContext";
 
 export interface UseOrdersOptions {
   role?: "owner" | "employee";
@@ -57,6 +58,7 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
   const [isFetching, setIsFetching] = useState(false); // spinner — every fetch
   const [error, setError] = useState<string | null>(null);
   const isFirstLoad = useRef(true);
+  const { logout } = useAuth();
 
   const fetchOrders = useCallback(async () => {
     // First load → show skeleton. Subsequent fetches → show inline spinner only
@@ -75,6 +77,10 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
       const res = await fetch(`/api/orders?${params}`, {
         credentials: "include",
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data: TOrder[] = await res.json();

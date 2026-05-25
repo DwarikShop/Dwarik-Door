@@ -13,6 +13,7 @@
 import { useState, useEffect } from "react";
 import { products as mockProducts } from "../data/mockData";
 import type { TProduct } from "../models/types";
+import { useAuth } from "../context/AuthContext";
 
 interface UseProductResult {
   product: TProduct | null;
@@ -24,6 +25,7 @@ export function useProduct(id: string | undefined): UseProductResult {
   const [product, setProduct] = useState<TProduct | null>(null);
   const [isLoading, setIsLoading] = useState(!!id);
   const [error, setError] = useState<string | null>(null);
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (!id) {
@@ -36,6 +38,10 @@ export function useProduct(id: string | undefined): UseProductResult {
 
     fetch(`/api/products/${id}`, { credentials: "include" })
       .then(async (res) => {
+        if (res.status === 401) {
+          logout();
+          return;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: TProduct = await res.json();
         setProduct(data);
@@ -50,7 +56,7 @@ export function useProduct(id: string | undefined): UseProductResult {
         }
       })
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, logout]);
 
   return { product, isLoading, error };
 }

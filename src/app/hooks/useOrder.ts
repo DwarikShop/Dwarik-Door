@@ -13,6 +13,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { orders as mockOrders } from "../data/mockData";
 import type { TOrder, OrderStatus } from "../models/types";
+import { useAuth } from "../context/AuthContext";
 
 interface UpdateStatusOptions {
   toStatus: OrderStatus;
@@ -48,6 +49,7 @@ export function useOrder(id: string | undefined): UseOrderResult {
   const [isLoading, setIsLoading] = useState(!!id);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { logout } = useAuth();
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -60,6 +62,10 @@ export function useOrder(id: string | undefined): UseOrderResult {
     setIsLoading(true);
     fetch(`/api/orders/${id}`, { credentials: "include" })
       .then(async (res) => {
+        if (res.status === 401) {
+          logout();
+          return;
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: TOrder = await res.json();
         setOrder(normaliseOrder(data));
@@ -70,7 +76,7 @@ export function useOrder(id: string | undefined): UseOrderResult {
         else setError("Order not found");
       })
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, logout]);
 
   // ── Status update ─────────────────────────────────────────────────────────
 
@@ -81,8 +87,20 @@ export function useOrder(id: string | undefined): UseOrderResult {
       note,
       rejectReason,
     }: UpdateStatusOptions): Promise<boolean> => {
-      if (!id) return false;
+      if (!id || !order) return false;
       setIsUpdating(true);
+
+      const previousOrder = order;
+
+      // Optimistic update status locally
+      setOrder((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: toStatus,
+          updatedAt: new Date(),
+        };
+      });
 
       try {
         const res = await fetch(`/api/orders/${id}/status`, {
@@ -91,6 +109,12 @@ export function useOrder(id: string | undefined): UseOrderResult {
           credentials: "include",
           body: JSON.stringify({ toStatus, changedBy, note, rejectReason }),
         });
+
+        if (res.status === 401) {
+          logout();
+          setOrder(previousOrder);
+          return false;
+        }
 
         if (!res.ok) {
           const err = await res.json();
@@ -101,13 +125,14 @@ export function useOrder(id: string | undefined): UseOrderResult {
         setOrder(normaliseOrder(updated));
         return true;
       } catch (err) {
-        console.error("[useOrder] updateStatus failed:", err);
+        console.error("[useOrder] updateStatus failed, rolling back:", err);
+        setOrder(previousOrder);
         return false;
       } finally {
         setIsUpdating(false);
       }
     },
-    [id, order],
+    [id, order, logout],
   );
 
   return { order, isLoading, isUpdating, error, updateStatus };

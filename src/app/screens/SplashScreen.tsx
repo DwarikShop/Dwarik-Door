@@ -98,25 +98,12 @@ export function SplashScreen() {
           transition={{ delay: 0.3, duration: 0.5 }}
           className="text-center"
         >
-          <h1 className="text-4xl font-bold text-primary-foreground mb-2 tracking-wide">
+          <h1 className="text-5xl font-black text-primary-foreground mb-3 tracking-wide">
             DWARIK DOOR
           </h1>
-          <p className="text-primary-foreground/80 text-lg">
+          <p className="text-primary-foreground/90 text-xl font-medium">
             Premium Door Manufacturing
           </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 0] }}
-          transition={{ delay: 1, duration: 1.5, repeat: Infinity }}
-          className="mt-12"
-        >
-          <div className="flex justify-center gap-2">
-            <div className="w-2 h-2 bg-accent rounded-full" />
-            <div className="w-2 h-2 bg-accent rounded-full" />
-            <div className="w-2 h-2 bg-accent rounded-full" />
-          </div>
         </motion.div>
       </motion.div>
     </div>

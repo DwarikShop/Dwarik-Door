@@ -62,22 +62,22 @@ export function LoadingScreen() {
       </div>
 
       {/* Elegant Serif Branding typography */}
-      <div className="text-center space-y-1">
-        <h2 className="text-xl font-black tracking-[0.25em] text-[#F5E6D3] uppercase">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-black tracking-[0.2em] text-[#F5E6D3] uppercase">
           Dwarik Door
         </h2>
-        <p className="text-[9px] uppercase tracking-[0.3em] text-accent font-extrabold opacity-90">
+        <p className="text-sm uppercase tracking-[0.15em] text-accent font-extrabold opacity-95">
           Premium Door Manufacturing
         </p>
       </div>
 
       {/* Luxury progressive loading bar */}
-      <div className="w-36 h-1 bg-white/5 rounded-full overflow-hidden relative mt-8 border border-white/5 shadow-inner">
+      <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden relative mt-8 border border-white/5 shadow-inner">
         <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-accent to-[#DAB668] rounded-full animate-loader pointer-events-none" />
       </div>
       
       {/* Secure Connection Label */}
-      <span className="text-[8px] uppercase tracking-[0.2em] text-[#FAF9F6]/30 font-bold mt-3 animate-pulse">
+      <span className="text-xs uppercase tracking-[0.1em] text-[#FAF9F6]/50 font-bold mt-4 animate-pulse">
         Initializing Secure Connection...
       </span>
 

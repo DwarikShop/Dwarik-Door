@@ -111,15 +111,15 @@ export function OrderManagement() {
         <div className="max-w-lg mx-auto px-4 pt-4 pb-3">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
+              <p className="text-xs text-primary-foreground/75 font-extrabold uppercase tracking-widest leading-none">
                 Dwarik Door
               </p>
-              <h1 className="text-lg font-black tracking-tight text-primary-foreground mt-0.5">Orders</h1>
+              <h1 className="text-2xl font-black tracking-tight text-primary-foreground mt-1">Orders</h1>
             </div>
             
-            <div className="flex items-center bg-primary-foreground/10 px-2.5 py-1 rounded-full border border-primary-foreground/5 shrink-0">
-              <Clock size={11} className="text-accent animate-pulse mr-1" />
-              <span className="text-[9px] font-black uppercase tracking-wider">Live Log</span>
+            <div className="flex items-center bg-primary-foreground/10 px-3 py-1 rounded-full border border-primary-foreground/5 shrink-0">
+              <Clock size={13} className="text-accent animate-pulse mr-1" />
+              <span className="text-xs font-black uppercase tracking-wider">Live Log</span>
             </div>
           </div>
 
@@ -127,18 +127,18 @@ export function OrderManagement() {
           <div className="relative group">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 group-focus-within:text-primary-foreground transition-colors"
-              size={14}
+              size={16}
             />
             <input
               type="text"
               placeholder="Search by order ID, product or customer…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full h-8.5 pl-9 pr-9 rounded-xl bg-primary-foreground/10 border border-primary-foreground/5 text-primary-foreground placeholder:text-primary-foreground/45 focus:outline-none focus:border-accent focus:ring-1.5 focus:ring-accent/10 text-xs transition-all"
+              className="w-full h-10 pl-10 pr-9 rounded-xl bg-primary-foreground/10 border border-primary-foreground/5 text-primary-foreground placeholder:text-primary-foreground/45 focus:outline-none focus:border-accent focus:ring-1.5 focus:ring-accent/10 text-sm transition-all"
             />
             {isFetching && (
               <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                <div className="w-3.5 h-3.5 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               </div>
             )}
             {!isFetching && searchInput && (
@@ -147,7 +147,7 @@ export function OrderManagement() {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-primary-foreground/10 rounded-full text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-pointer"
                 aria-label="Clear search"
               >
-                <X size={11} />
+                <X size={13} />
               </button>
             )}
           </div>
@@ -161,7 +161,7 @@ export function OrderManagement() {
               <button
                 key={f.value}
                 onClick={() => setStatusFilter(f.value)}
-                className={`flex-shrink-0 px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
+                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
                   isSelected
                     ? "bg-accent text-accent-foreground shadow-sm font-extrabold"
                     : "bg-primary-foreground/10 text-primary-foreground/75 hover:bg-primary-foreground/20 border border-transparent"
@@ -175,17 +175,17 @@ export function OrderManagement() {
       </header>
 
       {/* High-density orders lists */}
-      <main className="max-w-lg mx-auto px-4 pt-3.5 pb-6 space-y-2">
+      <main className="max-w-lg mx-auto px-4 pt-3.5 pb-6 space-y-2.5">
         {/* Results Metadata */}
         <div className="flex items-center justify-between px-1 mb-1">
-          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground/60">
+          <p className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground/70">
             {listItems.length} Order{listItems.length !== 1 ? "s" : ""} active
             {debouncedSearch && ` for "${debouncedSearch}"`}
           </p>
           {searchInput && (
             <button
               onClick={() => setSearchInput("")}
-              className="text-[9px] text-accent font-extrabold uppercase tracking-widest cursor-pointer"
+              className="text-xs text-accent font-black uppercase tracking-wider cursor-pointer"
             >
               Reset
             </button>
@@ -194,13 +194,13 @@ export function OrderManagement() {
 
         {listItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-border/40 p-6 shadow-sm">
-            <div className="w-12 h-12 bg-secondary/80 rounded-xl flex items-center justify-center mb-3 text-muted-foreground">
-              <Package size={22} />
+            <div className="w-14 h-14 bg-secondary/80 rounded-xl flex items-center justify-center mb-3 text-muted-foreground">
+              <Package size={26} />
             </div>
-            <p className="font-extrabold text-foreground mb-0.5 text-xs">
+            <p className="font-extrabold text-foreground mb-1 text-sm">
               No orders found
             </p>
-            <p className="text-[10px] text-muted-foreground max-w-[180px]">
+            <p className="text-xs text-muted-foreground max-w-[200px]">
               Try adjusting your query or filter tags.
             </p>
           </div>
@@ -212,9 +212,9 @@ export function OrderManagement() {
                 <button
                   key={order.id}
                   onClick={() => router.push(`/orders/${order.id}`)}
-                  className="w-full text-left bg-card border border-border/40 hover:border-border/80 rounded-2xl overflow-hidden shadow-sm active:scale-[0.99] transition-all flex items-center gap-3 p-2.5 cursor-pointer relative"
+                  className="w-full text-left bg-card border border-border/40 hover:border-border/80 rounded-xl overflow-hidden shadow-sm active:scale-[0.99] transition-all flex items-center gap-3 p-2.5 cursor-pointer relative"
                 >
-                  {/* Small product thumbnail with door fallback */}
+                  {/* Small product thumbnail */}
                   <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-border/40 bg-secondary/30 relative">
                     <img
                       src={order.productImage || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
@@ -226,52 +226,57 @@ export function OrderManagement() {
                   {/* Order metadata info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[8px] font-mono text-muted-foreground/80 truncate">
-                          {order.id}
-                        </span>
-                        {order.customerName && (
-                          <>
-                            <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                            <span className="text-[9px] font-extrabold uppercase text-foreground/80 truncate">
-                              {order.customerName}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      <StatusChip status={order.status} className="text-[8px] px-1.5 py-0.5 shrink-0" />
+                      <span className="text-xs font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
+                        #{order.id}
+                      </span>
+                      <StatusChip status={order.status} className="text-[9px] px-1.5 py-0.5 shrink-0" />
                     </div>
 
-                    <h3 className="font-extrabold text-foreground text-xs leading-tight truncate mt-0.5">
+                    <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
                       {order.productName}
                     </h3>
 
-                    {/* Compact Specs list */}
-                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground mt-1 flex-wrap leading-none">
-                      <span className="font-medium bg-secondary/70 border border-border/40 px-1 py-0.5 rounded text-[8px]">
-                        {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
-                      </span>
-                      <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                      <span className="font-medium bg-accent/5 border border-accent/10 text-accent px-1.5 py-0.5 rounded text-[8px]">
-                        Qty: {order.quantity}
-                      </span>
-                      <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                      <span className="capitalize">{order.packaging || "plastic"}</span>
+                    <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
+                      {order.customerName ? (
+                        <span className="truncate mr-2">
+                          Client: <span className="font-semibold text-foreground">{order.customerName}</span>
+                        </span>
+                      ) : (
+                        <span></span>
+                      )}
+                      
+                      {order.assignedTo && (
+                        <span className="shrink-0 font-medium bg-secondary/80 border border-border/40 px-1 py-0.2 rounded text-[10px]">
+                          Op: <span className="font-semibold text-foreground">{order.assignedTo}</span>
+                        </span>
+                      )}
                     </div>
 
-                    {/* Bottom Metadata row */}
-                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/20">
-                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground">
-                        <Calendar size={9} className="text-accent" />
+                    {/* Specs inline row with smaller font */}
+                    <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-border/10">
+                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
+                        <span className="font-medium bg-secondary/40 px-1 py-0.2 rounded text-[10px]">
+                          {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30 animate-pulse" />
+                        <span className="font-bold text-accent">
+                          Qty: {order.quantity} pcs
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30 animate-pulse" />
+                        <span className="capitalize text-[10px]">
+                          {order.packaging || "plastic"} pack
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground/80 font-medium shrink-0">
                         <span>
                           {new Date(order.createdAt!).toLocaleDateString("en-IN", {
                             day: "2-digit",
                             month: "2-digit",
-                            year: "numeric",
                           })}
                         </span>
+                        <ChevronRight size={12} className="text-muted-foreground/45" />
                       </div>
-                      <ChevronRight size={10} className="text-muted-foreground/60" />
                     </div>
                   </div>
                 </button>
@@ -286,48 +291,47 @@ export function OrderManagement() {
             const overallStatus = allStatuses.length === 1 ? allStatuses[0] : "in_progress";
 
             return (
-              <div key={groupId} className="bg-card border border-border/40 rounded-2xl shadow-sm overflow-hidden transition-all duration-200">
+              <div key={groupId} className="bg-card border border-border/40 rounded-xl shadow-sm overflow-hidden transition-all duration-200">
                 {/* Group Header block */}
                 <button
                   onClick={() => toggleGroup(groupId)}
-                  className="w-full text-left p-2.5 flex items-center gap-2.5 active:bg-secondary/40 transition-colors cursor-pointer"
+                  className="w-full text-left p-2.5 flex items-center gap-3 active:bg-secondary/40 transition-colors cursor-pointer"
                 >
                   <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <Layers size={16} className="text-accent" />
+                    <Layers size={18} className="text-accent" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[8px] font-mono text-muted-foreground/80 truncate">
-                          {groupId}
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                        <span className="text-[9px] font-extrabold uppercase text-foreground truncate">
-                          {firstOrder.customerName || "Group Order"}
+                    <div className="flex items-center justify-between gap-2.5">
+                      <span className="text-xs font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
+                        #{groupId}
+                      </span>
+                      <StatusChip status={overallStatus} className="text-[9px] px-1.5 py-0.5 shrink-0" />
+                    </div>
+
+                    <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
+                      {firstOrder.customerName || "Group Order"}
+                    </h3>
+
+                    <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-accent bg-accent/5 border border-accent/15 px-1.5 py-0.2 rounded text-[10px]">{groupOrders.length} Doors</span>
+                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                        <span>
+                          {new Date(firstOrder.createdAt!).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "2-digit",
+                          })}
                         </span>
                       </div>
-                      <StatusChip status={overallStatus} className="text-[8px] px-1.5 py-0.5 shrink-0" />
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-[9px] text-muted-foreground mt-0.5 leading-none">
-                      <span className="font-extrabold text-accent">{groupOrders.length} Doors</span>
-                      <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                      <span>
-                        {new Date(firstOrder.createdAt!).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}
-                      </span>
+                      
+                      {isExpanded ? (
+                        <ChevronUp size={16} className="text-muted-foreground shrink-0" />
+                      ) : (
+                        <ChevronDown size={16} className="text-muted-foreground shrink-0" />
+                      )}
                     </div>
                   </div>
-                  
-                  {isExpanded ? (
-                    <ChevronUp size={14} className="text-muted-foreground shrink-0" />
-                  ) : (
-                    <ChevronDown size={14} className="text-muted-foreground shrink-0" />
-                  )}
                 </button>
 
                 {/* Expanded inner items */}
@@ -337,7 +341,7 @@ export function OrderManagement() {
                       <button
                         key={order.id}
                         onClick={() => router.push(`/orders/${order.id}`)}
-                        className="w-full text-left p-2.5 pl-6 flex items-center gap-3 active:bg-secondary/40 transition-all cursor-pointer"
+                        className="w-full text-left p-2.5 pl-5 flex items-center gap-3 active:bg-secondary/40 transition-all cursor-pointer"
                       >
                         <img
                           src={order.productImage || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
@@ -346,23 +350,26 @@ export function OrderManagement() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2.5">
-                            <h3 className="font-extrabold text-foreground text-xs leading-none truncate">
-                              {order.productName}
-                            </h3>
-                            <StatusChip status={order.status} className="text-[7px] px-1.5 py-0.5 shrink-0" />
+                            <span className="text-[10px] font-black text-accent bg-accent/10 px-1 py-0.2 rounded border border-accent/15 font-mono shrink-0">
+                              #{order.id}
+                            </span>
+                            <StatusChip status={order.status} className="text-[8px] px-1 py-0.2 shrink-0" />
                           </div>
                           
-                          <p className="text-[8px] font-mono text-muted-foreground mt-0.5 leading-none">
-                            {order.id}
-                          </p>
-
+                          <h3 className="font-extrabold text-foreground text-xs leading-snug mt-1.5">
+                            {order.productName}
+                          </h3>
+                          
                           {/* Dimensions & Qty */}
-                          <div className="flex items-center gap-1.5 text-[8.5px] text-muted-foreground mt-1.5 leading-none">
-                            <span className="bg-card border border-border/40 px-1 py-0.5 rounded text-[7.5px]">
-                              {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
-                            </span>
-                            <span className="w-1 h-1 rounded-full bg-border shrink-0" />
-                            <span className="font-bold text-accent">Qty: {order.quantity}</span>
+                          <div className="flex items-center justify-between mt-1 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-card border border-border/40 px-1 py-0.2 rounded text-[9px]">
+                                {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
+                              </span>
+                              <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                              <span className="font-bold text-accent">Qty: {order.quantity}</span>
+                            </div>
+                            <ChevronRight size={11} className="text-muted-foreground/45" />
                           </div>
                         </div>
                       </button>
