@@ -147,9 +147,11 @@ export function EmployeeOrderList() {
             </p>
           </div>
         ) : (
-          myOrders.map((order) => {
-            const isActionable =
-              order.status === "placed" || order.status === "in_progress";
+          [...myOrders]
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+            .map((order) => {
+              const isActionable =
+                order.status === "placed" || order.status === "in_progress";
 
             return (
               <button
@@ -180,12 +182,12 @@ export function EmployeeOrderList() {
                   <p className="text-xs text-muted-foreground mb-1.5">
                     {order.id}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mb-1">
                     {order.height} × {order.width} {order.unit} &bull;{" "}
-                    {order.quantity} pcs
+                    {order.quantity} pcs &bull; <span className="capitalize font-medium text-accent">{order.packaging || "plastic"}</span>
                   </p>
                   {isActionable && (
-                    <p className="text-xs text-accent font-semibold mt-1.5">
+                    <p className="text-xs text-accent font-semibold mt-2.5">
                       {order.status === "placed"
                         ? "Tap to start work →"
                         : "Tap to update →"}

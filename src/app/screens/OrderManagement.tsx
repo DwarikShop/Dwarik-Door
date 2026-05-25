@@ -56,8 +56,8 @@ export function OrderManagement() {
     ];
 
     items.sort((a, b) => {
-      const aDate = a.type === "single" ? a.order.updatedAt! : a.orders[0].updatedAt!;
-      const bDate = b.type === "single" ? b.order.updatedAt! : b.orders[0].updatedAt!;
+      const aDate = a.type === "single" ? a.order.createdAt! : a.orders[0].createdAt!;
+      const bDate = b.type === "single" ? b.order.createdAt! : b.orders[0].createdAt!;
       return new Date(bDate).getTime() - new Date(aDate).getTime();
     });
 
@@ -197,10 +197,10 @@ export function OrderManagement() {
                       <StatusChip status={order.status} className="text-xs px-2 py-0.5 shrink-0" />
                     </div>
                     <p className="text-xs text-muted-foreground mb-1.5">{order.id}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`} &bull; {order.quantity} pcs
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`} &bull; {order.quantity} pcs &bull; <span className="capitalize font-medium text-accent">{order.packaging || "plastic"}</span>
                     </p>
-                    <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center justify-between mt-2.5">
                       {order.customerName && (
                         <p className="text-xs text-muted-foreground truncate flex-1 min-w-0">{order.customerName}</p>
                       )}
@@ -269,8 +269,8 @@ export function OrderManagement() {
                             <StatusChip status={order.status} className="text-xs px-2 py-0.5 shrink-0" />
                           </div>
                           <p className="text-xs text-muted-foreground mb-0.5">{order.id}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`} &bull; {order.quantity} pcs
+                          <p className="text-xs text-muted-foreground mb-0.5">
+                            {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`} &bull; {order.quantity} pcs &bull; <span className="capitalize font-medium text-accent">{order.packaging || "plastic"}</span>
                           </p>
                         </div>
                       </button>

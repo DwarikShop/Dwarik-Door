@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     }
 
     const orders = await Order.find(filter)
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
 
@@ -109,6 +109,7 @@ export async function POST(request: Request) {
       height,
       width,
       unit,
+      packaging,
       freeSize,
       customization,
       quantity,
@@ -218,6 +219,7 @@ export async function POST(request: Request) {
       height: freeSize ? 0 : height,
       width: freeSize ? 0 : width,
       unit: unit || "inch",
+      packaging: packaging || "plastic",
       freeSize: !!freeSize,
       customization,
       quantity,

@@ -47,6 +47,7 @@ interface OrderItem {
   height: string;
   width: string;
   unit: "inch" | "mm";
+  packaging: "plastic" | "carton";
   freeSize: boolean;
   quantity: string;
   customization: boolean;
@@ -58,6 +59,7 @@ const emptyItem = (): OrderItem => ({
   height: "",
   width: "",
   unit: "inch",
+  packaging: "plastic",
   freeSize: false,
   quantity: "1",
   customization: false,
@@ -93,6 +95,10 @@ export function PlaceOrderScreen() {
   const [groupSearches, setGroupSearches] = useState<string[]>([""]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Product dropdown lazy loading states
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(3);
 
   // ── Product search filter ─────────────────────────────────────────────────
   const filterProducts = (term: string) => {
@@ -204,6 +210,7 @@ export function PlaceOrderScreen() {
             height: item.freeSize ? 0 : parseFloat(item.height),
             width: item.freeSize ? 0 : parseFloat(item.width),
             unit: item.unit,
+            packaging: item.packaging,
             freeSize: item.freeSize,
             customization: item.customization ? item.customizationText : undefined,
             quantity: parseInt(item.quantity),
@@ -264,6 +271,14 @@ export function PlaceOrderScreen() {
     const stockError = getStockError(item);
     const filtered = filterProducts(search);
 
+    const isDropdownOpen = activeSearchIndex === (index !== undefined ? index : -1);
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      if (target.scrollHeight - target.scrollTop <= target.clientHeight + 25) {
+        setVisibleCount((prev) => prev + 3);
+      }
+    };
+
     return (
       <div className="space-y-4">
         {/* Product search */}
@@ -284,14 +299,28 @@ export function PlaceOrderScreen() {
                   : "Search by Product ID or Name"
               }
               value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onFocus={() => {
+                setActiveSearchIndex(index !== undefined ? index : -1);
+                setVisibleCount(3);
+              }}
+              onBlur={() => {
+                // Delayed blur to let click event on products dropdown register
+                setTimeout(() => setActiveSearchIndex(null), 250);
+              }}
+              onChange={(e) => {
+                onSearchChange(e.target.value);
+                setVisibleCount(3);
+              }}
               disabled={productsLoading}
               className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-input bg-input-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm disabled:opacity-60"
             />
             {search && (
               <button
                 type="button"
-                onClick={() => onSearchChange("")}
+                onClick={() => {
+                  onSearchChange("");
+                  setVisibleCount(3);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X size={16} />
@@ -299,15 +328,19 @@ export function PlaceOrderScreen() {
             )}
           </div>
 
-          {search && filtered.length > 0 && (
-            <div className="mt-2 max-h-48 overflow-y-auto rounded-xl border border-border bg-card shadow-md">
-              {filtered.map((p) => (
+          {isDropdownOpen && filtered.length > 0 && (
+            <div
+              onScroll={handleScroll}
+              className="mt-2 max-h-48 overflow-y-auto rounded-xl border border-border bg-card shadow-md scrollbar-thin"
+            >
+              {filtered.slice(0, visibleCount).map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => {
                     onItemChange({ product: p });
                     onSearchChange("");
+                    setActiveSearchIndex(null);
                   }}
                   className="w-full text-left flex gap-3 items-center p-3 hover:bg-secondary transition-colors first:rounded-t-xl last:rounded-b-xl"
                 >
@@ -424,6 +457,29 @@ export function PlaceOrderScreen() {
                   </div>
                 </>
               )}
+            </div>
+ 
+            {/* Packaging Option */}
+            <div className="py-1">
+              <label className="block text-sm font-semibold text-foreground mb-2.5">
+                Packaging Option
+              </label>
+              <div className="flex gap-2">
+                {(["plastic", "carton"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => onItemChange({ packaging: p })}
+                    className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${
+                      item.packaging === p
+                        ? "bg-accent text-accent-foreground shadow-sm scale-[1.01]"
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    {p === "carton" ? "Carton" : "Plastic"}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Quantity */}

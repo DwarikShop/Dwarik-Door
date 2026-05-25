@@ -78,6 +78,7 @@ async function seed() {
             height: o.height,
             width: o.width,
             unit: o.unit,
+            packaging: o.packaging || "plastic",
             customization: o.customization,
             quantity: o.quantity,
             status: o.status,

@@ -23,6 +23,8 @@ export type OrderStatus =
 
 export type MeasurementUnit = "inch" | "mm";
 
+export type PackagingOption = "plastic" | "carton";
+
 export type InventoryChangeReason =
   | "order_placed" // stock reserved when order is placed
   | "order_cancelled" // reservation released
@@ -70,6 +72,7 @@ export interface TOrder {
   height: number;
   width: number;
   unit: MeasurementUnit;
+  packaging?: PackagingOption;
   freeSize?: boolean; // true = standard size, no custom dimensions
   customization?: string;
   quantity: number;

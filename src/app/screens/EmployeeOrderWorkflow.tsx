@@ -140,6 +140,10 @@ export function EmployeeOrderWorkflow() {
                   <span className="font-medium text-foreground">Qty:</span>{" "}
                   {order.quantity} pcs
                 </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">Packaging:</span>{" "}
+                  <span className="capitalize font-semibold text-accent">{order.packaging || "plastic"}</span>
+                </p>
               </div>
             </div>
           </div>

@@ -53,6 +53,12 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
       default: "inch",
     },
+    packaging: {
+      type: String,
+      enum: ["plastic", "carton"],
+      required: true,
+      default: "plastic",
+    },
     customization: {
       type: String,
       trim: true,
@@ -118,8 +124,10 @@ OrderSchema.index({ assignedTo: 1, updatedAt: -1 });
 // Compound index: filter by status, newest first
 OrderSchema.index({ status: 1, updatedAt: -1 });
 
-const Order =
-  (mongoose.models.Order as mongoose.Model<IOrder>) ||
-  mongoose.model<IOrder>("Order", OrderSchema);
+if (mongoose.models && mongoose.models.Order) {
+  delete mongoose.models.Order;
+}
+
+const Order = mongoose.model<IOrder>("Order", OrderSchema);
 
 export default Order;

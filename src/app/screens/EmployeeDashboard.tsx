@@ -14,7 +14,13 @@ export function EmployeeDashboard() {
   const router = useRouter();
   const { orders: myOrders, isLoading } = useOrders({ role: "employee" });
 
-  const assignedOrders = myOrders.filter((o) => o.assignedTo === user?.id);
+  const assignedOrders = [...myOrders]
+    .filter((o) => o.assignedTo === user?.id)
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime(),
+    );
   const pendingOrders = assignedOrders.filter((o) => o.status === "placed");
   const inProgressOrders = assignedOrders.filter((o) => o.status === "in_progress");
   const completedToday = assignedOrders.filter(
@@ -149,7 +155,7 @@ export function EmployeeDashboard() {
                 </p>
               </div>
             ) : (
-              assignedOrders.slice(0, 5).map((order) => (
+              assignedOrders.slice(0, 10).map((order) => (
                 <button
                   key={order.id}
                   onClick={() => router.push(`/employee/orders/${order.id}`)}

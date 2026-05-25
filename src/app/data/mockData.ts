@@ -17,6 +17,7 @@ export interface Order {
   height: number;
   width: number;
   unit: 'inch' | 'mm';
+  packaging: 'plastic' | 'carton';
   customization?: string;
   quantity: number;
   status: 'placed' | 'in_progress' | 'done' | 'shipped' | 'cancelled' | 'rejected';
@@ -158,6 +159,7 @@ export const orders: Order[] = [
     height: 84,
     width: 36,
     unit: 'inch',
+    packaging: 'plastic',
     customization: 'Add decorative groove pattern',
     quantity: 2,
     status: 'placed',
@@ -175,6 +177,7 @@ export const orders: Order[] = [
     height: 2134,
     width: 914,
     unit: 'mm',
+    packaging: 'plastic',
     quantity: 1,
     status: 'in_progress',
     assignedTo: 'EMP-003',
@@ -191,6 +194,7 @@ export const orders: Order[] = [
     height: 96,
     width: 42,
     unit: 'inch',
+    packaging: 'plastic',
     customization: 'Custom floral carving with gold inlay',
     quantity: 1,
     status: 'done',
@@ -208,6 +212,7 @@ export const orders: Order[] = [
     height: 80,
     width: 32,
     unit: 'inch',
+    packaging: 'plastic',
     quantity: 3,
     status: 'shipped',
     assignedTo: 'EMP-004',
