@@ -91,7 +91,6 @@ export function OwnerDashboard() {
       icon: Clock,
       color: "text-info",
       bg: "bg-info/10",
-      bar: "bg-info",
     },
     {
       label: "In Progress",
@@ -99,7 +98,6 @@ export function OwnerDashboard() {
       icon: TrendingUp,
       color: "text-warning",
       bg: "bg-warning/10",
-      bar: "bg-warning",
     },
     {
       label: "Done",
@@ -107,7 +105,6 @@ export function OwnerDashboard() {
       icon: CheckCircle2,
       color: "text-success",
       bg: "bg-success/10",
-      bar: "bg-success",
     },
     {
       label: "Shipped",
@@ -115,10 +112,8 @@ export function OwnerDashboard() {
       icon: Truck,
       color: "text-primary",
       bg: "bg-primary/10",
-      bar: "bg-primary",
     },
   ];
-  const pipelineTotal = pipeline.reduce((s, p) => s + p.value, 0) || 1;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -152,48 +147,42 @@ export function OwnerDashboard() {
       <main className="max-w-lg mx-auto px-4 py-5 space-y-5">
         {/* ── Section 1: Alerts ── */}
         {hasAlerts && (
-          <section className="space-y-2">
+          <section className="flex gap-3">
             {stats.damaged > 0 && (
               <button
                 onClick={() => router.push("/inventory")}
-                className="w-full flex items-center gap-3 bg-destructive/5 border border-destructive/15 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-transform"
+                className="flex-1 flex flex-col items-center gap-2 bg-destructive/5 border border-destructive/15 rounded-2xl px-3 py-3.5 text-center active:scale-[0.98] transition-transform"
               >
-                <div className="p-2 bg-destructive/10 rounded-xl shrink-0">
+                <div className="p-2 bg-destructive/10 rounded-xl">
                   <AlertTriangle className="text-destructive" size={16} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div>
                   <p className="text-sm font-semibold text-destructive leading-none">
-                    Damaged Inventory
+                    Damaged
                   </p>
                   <p className="text-xs text-destructive/60 mt-0.5">
-                    {stats.damaged} units need attention
+                    {stats.damaged} units
                   </p>
                 </div>
-                <ChevronRight
-                  size={15}
-                  className="text-destructive/40 shrink-0"
-                />
               </button>
             )}
 
             {stats.lowInventory > 0 && (
               <button
                 onClick={() => router.push("/inventory")}
-                className="w-full flex items-center gap-3 bg-warning/5 border border-warning/15 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-transform"
+                className="flex-1 flex flex-col items-center gap-2 bg-warning/5 border border-warning/15 rounded-2xl px-3 py-3.5 text-center active:scale-[0.98] transition-transform"
               >
-                <div className="p-2 bg-warning/10 rounded-xl shrink-0">
+                <div className="p-2 bg-warning/10 rounded-xl">
                   <Package className="text-warning" size={16} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div>
                   <p className="text-sm font-semibold text-warning leading-none">
                     Low Stock
                   </p>
                   <p className="text-xs text-warning/60 mt-0.5">
-                    {stats.lowInventory} product
-                    {stats.lowInventory > 1 ? "s" : ""} running low
+                    {stats.lowInventory} product{stats.lowInventory > 1 ? "s" : ""}
                   </p>
                 </div>
-                <ChevronRight size={15} className="text-warning/40 shrink-0" />
               </button>
             )}
           </section>
@@ -212,23 +201,6 @@ export function OwnerDashboard() {
           </div>
 
           <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-            {/* Segmented bar */}
-            <div className="flex h-2 rounded-full overflow-hidden gap-0.5 mb-5">
-              {pipeline.map((p) =>
-                p.value > 0 ? (
-                  <div
-                    key={p.label}
-                    className={`${p.bar} rounded-full transition-all duration-700`}
-                    style={{ width: `${(p.value / pipelineTotal) * 100}%` }}
-                  />
-                ) : null,
-              )}
-              {/* Empty state bar */}
-              {pipelineTotal === 0 && (
-                <div className="bg-secondary rounded-full w-full" />
-              )}
-            </div>
-
             {/* 4 stat chips */}
             <div className="grid grid-cols-4 gap-2">
               {pipeline.map((s) => {

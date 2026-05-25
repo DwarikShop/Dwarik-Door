@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { BottomNav } from "../components/BottomNav";
-import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useEmployees, type SafeEmployee } from "../hooks/useEmployees";
-import { UserPlus, X, Edit2, KeyRound } from "lucide-react";
+import { UserPlus, X, KeyRound, Phone, User, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Add modal state ───────────────────────────────────────────────────────────
@@ -32,6 +31,20 @@ interface EditForm {
   phone: string;
   role: "owner" | "employee";
 }
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+const ROLE_STYLES: Record<string, { bg: string; text: string }> = {
+  owner: { bg: "bg-accent/15", text: "text-accent" },
+  employee: { bg: "bg-info/10", text: "text-info" },
+};
 
 export function EmployeeManagement() {
   const {
@@ -133,11 +146,11 @@ export function EmployeeManagement() {
             <div className="h-7 w-32 bg-primary-foreground/20 rounded" />
           </div>
         </header>
-        <div className="max-w-lg mx-auto px-6 py-6 space-y-4">
+        <div className="max-w-lg mx-auto px-4 py-5 space-y-3">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-card border border-border rounded-2xl h-24 animate-pulse"
+              className="bg-card border border-border rounded-2xl h-20 animate-pulse"
             />
           ))}
         </div>
@@ -148,64 +161,133 @@ export function EmployeeManagement() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
+  const owners = employees.filter((e) => e.role === "owner");
+  const staff = employees.filter((e) => e.role === "employee");
+
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="bg-primary text-primary-foreground px-6 py-6 sticky top-0 z-40 shadow-md">
+      <header className="bg-primary text-primary-foreground px-6 pt-8 pb-5 sticky top-0 z-40">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Employees</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Team</h1>
+            <p className="text-xs text-primary-foreground/50 mt-0.5">
+              {employees.length} member{employees.length !== 1 ? "s" : ""}
+            </p>
+          </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="p-2 bg-accent text-accent-foreground rounded-full hover:opacity-90 transition-opacity"
+            className="p-2.5 bg-primary-foreground/10 rounded-full active:scale-95 transition-transform"
           >
-            <UserPlus size={24} />
+            <UserPlus size={20} />
           </button>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-6 py-6 space-y-4">
+      <main className="max-w-lg mx-auto px-4 py-5 space-y-5">
         {employees.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-muted-foreground text-sm">No employees yet</p>
+            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
+              <User size={28} className="text-muted-foreground" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">No team members yet</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Tap + to add your first employee
+            </p>
           </div>
         ) : (
-          employees.map((employee) => (
-            <Card key={employee.id} className="p-4 gap-0">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-bold text-lg">{employee.name}</h3>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        employee.role === "owner"
-                          ? "bg-accent/20 text-accent"
-                          : "bg-secondary text-secondary-foreground"
-                      }`}
-                    >
-                      {employee.role}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>
-                      <span className="font-semibold text-foreground">ID:</span>{" "}
-                      {employee.id}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-foreground">
-                        Phone:
-                      </span>{" "}
-                      {employee.phone}
-                    </p>
-                  </div>
+          <>
+            {/* Owners */}
+            {owners.length > 0 && (
+              <section>
+                <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                  Owners
+                </h2>
+                <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm divide-y divide-border">
+                  {owners.map((emp) => {
+                    const rs = ROLE_STYLES[emp.role];
+                    return (
+                      <button
+                        key={emp.id}
+                        onClick={() => openEdit(emp)}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 active:bg-secondary/50 transition-colors"
+                      >
+                        {/* Avatar */}
+                        <div className="w-11 h-11 rounded-full bg-accent/15 flex items-center justify-center shrink-0">
+                          <span className="text-sm font-bold text-accent">
+                            {getInitials(emp.name)}
+                          </span>
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-foreground truncate leading-snug">
+                              {emp.name}
+                            </p>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${rs.bg} ${rs.text}`}>
+                              {emp.role}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Phone size={11} className="text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">{emp.phone}</span>
+                          </div>
+                        </div>
+
+                        <ChevronRight size={14} className="text-muted-foreground/40 shrink-0" />
+                      </button>
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={() => openEdit(employee)}
-                  className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                >
-                  <Edit2 size={20} className="text-muted-foreground" />
-                </button>
-              </div>
-            </Card>
-          ))
+              </section>
+            )}
+
+            {/* Employees */}
+            {staff.length > 0 && (
+              <section>
+                <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                  Employees
+                </h2>
+                <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm divide-y divide-border">
+                  {staff.map((emp) => {
+                    const rs = ROLE_STYLES[emp.role];
+                    return (
+                      <button
+                        key={emp.id}
+                        onClick={() => openEdit(emp)}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 active:bg-secondary/50 transition-colors"
+                      >
+                        {/* Avatar */}
+                        <div className="w-11 h-11 rounded-full bg-info/10 flex items-center justify-center shrink-0">
+                          <span className="text-sm font-bold text-info">
+                            {getInitials(emp.name)}
+                          </span>
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-foreground truncate leading-snug">
+                              {emp.name}
+                            </p>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${rs.bg} ${rs.text}`}>
+                              {emp.role}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Phone size={11} className="text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">{emp.phone}</span>
+                          </div>
+                        </div>
+
+                        <ChevronRight size={14} className="text-muted-foreground/40 shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </main>
 
