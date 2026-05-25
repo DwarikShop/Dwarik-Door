@@ -89,3 +89,4 @@ src/
 - Mobile-first layout (max-width: 512px)
 - Dark mode support
 - Safe area insets for notched devices
+
