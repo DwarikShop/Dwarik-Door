@@ -589,9 +589,19 @@ export function PlaceOrderScreen() {
             <Toggle
               on={isGroupOrder}
               onToggle={() => {
-                setIsGroupOrder(!isGroupOrder);
-                setGroupItems([emptyItem()]);
-                setGroupSearches([""]);
+                const nextVal = !isGroupOrder;
+                setIsGroupOrder(nextVal);
+                if (nextVal) {
+                  // Transitioning from single to group order: copy single item to first group item
+                  setGroupItems([singleItem]);
+                  setGroupSearches([singleSearch]);
+                } else {
+                  // Transitioning from group to single order: copy first group item to single item
+                  if (groupItems.length > 0) {
+                    setSingleItem(groupItems[0]);
+                    setSingleSearch(groupSearches[0] || "");
+                  }
+                }
               }}
               label="Group Order Workflow"
             />

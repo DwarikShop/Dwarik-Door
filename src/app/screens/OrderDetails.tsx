@@ -1,19 +1,64 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrder } from "../hooks/useOrder";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Check, X, Calendar, Phone, User, Clock, Sparkles, Box, Info, Share2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  X,
+  Calendar,
+  Phone,
+  User,
+  Clock,
+  Sparkles,
+  Box,
+  Info,
+  Share2,
+  Printer,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components";
+import type { TOrder } from "../models/types";
 
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, isOwner } = useAuth();
   const { order, isLoading, isUpdating, updateStatus } = useOrder(id);
+
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [groupOrders, setGroupOrders] = useState<TOrder[]>([]);
+
+  useEffect(() => {
+    if (order) {
+      if (order.groupId) {
+        fetch(`/api/orders?groupId=${order.groupId}`, { credentials: "include" })
+          .then(async (res) => {
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              const sorted = [...data].sort((a, b) => a.id.localeCompare(b.id));
+              setGroupOrders(sorted);
+            } else {
+              setGroupOrders([order]);
+            }
+          })
+          .catch(() => {
+            setGroupOrders([order]);
+          });
+      } else {
+        setGroupOrders([order]);
+      }
+    }
+  }, [order]);
 
   if (isLoading) {
     return (
@@ -84,19 +129,48 @@ export function OrderDetails() {
     }
   };
 
-  const handleShareInvoice = () => {
-    if (!order) return;
+  const handlePrintInvoice = () => {
+    if (!order || groupOrders.length === 0) return;
     
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      toast.error("Popup blocker prevented invoice sharing. Please allow popups.");
+      toast.error("Popup blocker prevented sharing. Please allow popups.");
       return;
     }
 
     const cleanCustomerName = (order.customerName || "Customer")
       .trim()
       .replace(/[^a-zA-Z0-9]/g, "_");
-    const docTitle = `Invoice_${order.id}_${cleanCustomerName}`;
+    
+    const isGroup = groupOrders.length > 1;
+    const docTitle = isGroup 
+      ? `GroupOrder_${order.groupId}_${cleanCustomerName}`
+      : `Order_${order.id}_${cleanCustomerName}`;
+
+    // Loop through groupOrders to build table rows
+    const rowsHtml = groupOrders.map((o) => `
+      <tr class="border-b border-gray-100">
+        <td class="py-4 px-4">
+          <div class="flex items-center gap-3">
+            <img src="${o.productImage || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=100&h=150&fit=crop'}" class="w-12 h-16 rounded object-cover border border-gray-200" />
+            <div>
+              <p class="text-xs font-mono font-bold text-amber-800">${o.id} (${o.productId})</p>
+              <p class="text-sm font-bold text-gray-800 mt-0.5">${o.productName}</p>
+              ${o.customization ? `<p class="text-[10px] text-gray-500 mt-1 italic">Note: ${o.customization}</p>` : ''}
+            </div>
+          </div>
+        </td>
+        <td class="py-4 px-4 text-xs text-center font-bold text-gray-700">
+          ${o.freeSize ? 'Free Size' : `${o.height} × ${o.width} ${o.unit}`}
+        </td>
+        <td class="py-4 px-4 text-xs text-center font-bold text-gray-700 capitalize">
+          ${o.packaging || 'Plastic Wrap'}
+        </td>
+        <td class="py-4 px-4 text-sm font-black text-right text-amber-900">
+          ${o.quantity} Units
+        </td>
+      </tr>
+    `).join('');
 
     const htmlContent = `
 <html>
@@ -132,8 +206,8 @@ export function OrderDetails() {
         <p class="text-xs text-gray-500">Support: contact@dwarikdoor.com | +91 99988 87766</p>
       </div>
       <div class="text-right">
-        <h2 class="text-lg font-bold text-gray-800">INVOICE RECEIPT</h2>
-        <p class="text-xs font-mono font-bold text-amber-800 mt-1">#${order.id}</p>
+        <h2 class="text-lg font-bold text-gray-800 uppercase">${isGroup ? 'Group Order Details' : 'Order Details'}</h2>
+        <p class="text-xs font-mono font-bold text-amber-800 mt-1">#${isGroup ? order.groupId : order.id}</p>
         <p class="text-xs text-gray-500 mt-1">Date: ${new Date(order.createdAt!).toLocaleDateString('en-IN')}</p>
       </div>
     </div>
@@ -147,8 +221,8 @@ export function OrderDetails() {
       </div>
       <div>
         <h3 class="text-xs uppercase font-extrabold tracking-wider text-gray-400 mb-2">Order Information</h3>
-        <p class="text-xs text-gray-500">Status: <span class="capitalize font-bold text-amber-800">${order.status}</span></p>
-        <p class="text-xs text-gray-500 mt-1">Assigned Operator: <span class="capitalize font-bold">${order.assignedTo || 'Unassigned'}</span></p>
+        <p class="text-xs text-gray-500">Status: <span class="capitalize font-bold text-amber-800">${isGroup ? 'Multiple' : order.status}</span></p>
+        <p class="text-xs text-gray-500 mt-1">Total Items: <span class="font-bold">${groupOrders.length} Products</span></p>
         <p class="text-xs text-gray-500 mt-1">Last Updated: ${new Date(order.updatedAt!).toLocaleDateString('en-IN')}</p>
       </div>
     </div>
@@ -165,27 +239,7 @@ export function OrderDetails() {
           </tr>
         </thead>
         <tbody>
-          <tr class="border-b border-gray-100">
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-3">
-                <img src="${order.productImage || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=100&h=150&fit=crop'}" class="w-12 h-16 rounded object-cover border border-gray-200" />
-                <div>
-                  <p class="text-xs font-mono font-bold text-amber-800">${order.productId}</p>
-                  <p class="text-sm font-bold text-gray-800 mt-0.5">${order.productName}</p>
-                  ${order.customization ? `<p class="text-[10px] text-gray-500 mt-1 italic">Note: ${order.customization}</p>` : ''}
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-xs text-center font-bold text-gray-700">
-              ${order.freeSize ? 'Free Size' : `${order.height} × ${order.width} ${order.unit}`}
-            </td>
-            <td class="py-4 px-4 text-xs text-center font-bold text-gray-700 capitalize">
-              ${order.packaging || 'Plastic Wrap'}
-            </td>
-            <td class="py-4 px-4 text-sm font-black text-right text-amber-900">
-              ${order.quantity} Units
-            </td>
-          </tr>
+          ${rowsHtml}
         </tbody>
       </table>
     </div>
@@ -216,6 +270,219 @@ export function OrderDetails() {
 
     printWindow.document.write(htmlContent);
     printWindow.document.close();
+    setIsShareOpen(false);
+  };
+
+  const handleSharePdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const isGroup = groupOrders.length > 1;
+      const cleanCustomerName = (order.customerName || "Customer")
+        .trim()
+        .replace(/[^a-zA-Z0-9]/g, "_");
+
+      // --- PDF drawing logic ---
+      // Top banner
+      doc.setFillColor(139, 92, 26); // Amber-800
+      doc.rect(0, 0, 210, 15, "F");
+
+      // Title
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("DWARIK DOOR", 15, 10);
+
+      doc.setFontSize(8);
+      doc.setTextColor(220, 220, 220);
+      doc.text("PREMIUM BESPOKE TIMBERCRAFT", 145, 10);
+
+      // Document header
+      doc.setTextColor(26, 18, 16);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text(isGroup ? "GROUP ORDER DETAILS" : "ORDER DETAILS", 15, 30);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(isGroup ? `Group ID: #${order.groupId}` : `Order ID: #${order.id}`, 15, 37);
+      doc.text(`Date: ${new Date(order.createdAt!).toLocaleDateString("en-IN")}`, 15, 43);
+
+      // Customer & Order Information
+      doc.setFont("Helvetica", "bold");
+      doc.text("Customer Details:", 15, 55);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`Name: ${order.customerName || "Walk-in Customer"}`, 15, 61);
+      doc.text(`Phone: ${order.customerPhone || "Not Provided"}`, 15, 67);
+
+      doc.setFont("Helvetica", "bold");
+      doc.text("Order Information:", 115, 55);
+      doc.setFont("Helvetica", "normal");
+      doc.text(`Total Items: ${groupOrders.length} Products`, 115, 61);
+      doc.text(`Last Updated: ${new Date(order.updatedAt!).toLocaleDateString("en-IN")}`, 115, 67);
+
+      // Horizontal line separator
+      doc.setDrawColor(220, 220, 220);
+      doc.line(15, 75, 195, 75);
+
+      // Table Header
+      let currentY = 80;
+      doc.setFillColor(248, 246, 242);
+      doc.rect(15, currentY, 180, 8, "F");
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("Product Specifications", 18, currentY + 5);
+      doc.text("Dimensions", 100, currentY + 5);
+      doc.text("Packaging", 140, currentY + 5);
+      doc.text("Quantity", 175, currentY + 5);
+
+      currentY += 8;
+
+      // Table Content
+      doc.setFont("Helvetica", "normal");
+      groupOrders.forEach((o) => {
+        // Draw order items
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(9);
+        doc.text(o.productName || "Product", 18, currentY + 6);
+        
+        doc.setFont("Helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(120, 120, 120);
+        doc.text(`Order ID: ${o.id} (${o.productId})`, 18, currentY + 11);
+        
+        doc.setTextColor(26, 18, 16);
+        doc.setFontSize(9);
+
+        const dimensions = o.freeSize ? "Free Size" : `${o.height} x ${o.width} ${o.unit}`;
+        doc.text(dimensions, 100, currentY + 6);
+
+        const packaging = o.packaging || "Plastic Wrap";
+        doc.text(packaging, 140, currentY + 6);
+
+        const qty = `${o.quantity} Units`;
+        doc.text(qty, 175, currentY + 6);
+
+        currentY += 14;
+
+        // Customization Note
+        if (o.customization) {
+          doc.setFont("Helvetica", "italic");
+          doc.setFontSize(8);
+          doc.setTextColor(120, 120, 120);
+          doc.text(`Note: ${o.customization}`, 18, currentY - 1);
+          currentY += 5;
+        }
+
+        // Separator line between rows
+        doc.setDrawColor(240, 240, 240);
+        doc.line(15, currentY, 195, currentY);
+        currentY += 2;
+      });
+
+      // Line below table
+      doc.setDrawColor(220, 220, 220);
+      doc.line(15, currentY, 195, currentY);
+
+      // Quality Seal box
+      currentY += 8;
+      doc.setFillColor(250, 247, 244);
+      doc.rect(15, currentY, 180, 22, "F");
+      doc.setDrawColor(139, 92, 26);
+      doc.rect(15, currentY, 180, 22);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(139, 92, 26);
+      doc.text("DWARIK GENUINE SEAL", 20, currentY + 6);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 90, 80);
+      const sealText = "This document verifies the order placement for custom-seasoned hardwood timber products manufactured under strict ISO quality benchmarks. All products are warranted against structural defects.";
+      const splitSealText = doc.splitTextToSize(sealText, 170);
+      doc.text(splitSealText, 20, currentY + 11);
+
+      // Footer
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("Thank you for choosing Dwarik Door — Graining Elegance into Spaces.", 105, currentY + 35, { align: "center" });
+      doc.setFontSize(7);
+      doc.text(`Generated electronically on ${new Date().toLocaleDateString("en-IN")}`, 105, currentY + 40, { align: "center" });
+
+      // Output as blob
+      const pdfBlob = doc.output("blob");
+      const filename = isGroup
+        ? `GroupOrder_${order.groupId}_${cleanCustomerName}.pdf`
+        : `Order_${order.id}_${cleanCustomerName}.pdf`;
+      const file = new File([pdfBlob], filename, { type: "application/pdf" });
+
+      // Check if sharing is supported
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: isGroup ? `Group Order Details #${order.groupId}` : `Order Details #${order.id}`,
+          text: `Here are the order details for ${order.customerName || "your order"} from Dwarik Door.`,
+        });
+        toast.success("Order details shared successfully!");
+      } else {
+        // Fallback: download the file directly
+        doc.save(filename);
+        toast.success("PDF downloaded. You can now share it via WhatsApp manually.");
+      }
+    } catch (error) {
+      console.error("Error generating/sharing PDF:", error);
+      toast.error("Failed to share PDF. Falling back to print/save.");
+      handlePrintInvoice();
+    } finally {
+      setIsGeneratingPdf(false);
+      setIsShareOpen(false);
+    }
+  };
+
+  const handleShareWhatsAppText = () => {
+    if (!order || groupOrders.length === 0) return;
+
+    const phone = order.customerPhone ? order.customerPhone.replace(/[^0-9]/g, "") : "";
+    const formattedPhone = phone.length === 10 ? `91${phone}` : phone;
+
+    const isGroup = groupOrders.length > 1;
+    const dateStr = new Date(order.createdAt!).toLocaleDateString("en-IN");
+    
+    let text = `*DWARIK DOOR — ${isGroup ? "GROUP ORDER DETAILS" : "ORDER DETAILS"}*\n`;
+    text += `----------------------------------------\n`;
+    text += isGroup ? `*Group ID*: #${order.groupId}\n` : `*Order ID*: #${order.id}\n`;
+    text += `*Date*: ${dateStr}\n`;
+    text += `*Customer*: ${order.customerName || "Walk-in Customer"}\n`;
+    text += `----------------------------------------\n\n`;
+
+    groupOrders.forEach((o, index) => {
+      const dimensions = o.freeSize ? "Free Size" : `${o.height} x ${o.width} ${o.unit}`;
+      text += `*Door #${index + 1} (${o.id})*\n`;
+      text += `- *Item*: ${o.productName}\n`;
+      text += `- *Dimensions*: ${dimensions}\n`;
+      text += `- *Packaging*: ${o.packaging || "Plastic Wrap"}\n`;
+      text += `- *Quantity*: ${o.quantity} Units\n`;
+      if (o.customization) {
+        text += `- *Specs*: ${o.customization}\n`;
+      }
+      text += `\n`;
+    });
+
+    text += `----------------------------------------\n`;
+    text += `Thank you for choosing Dwarik Door!`;
+
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedText}`;
+    
+    window.open(whatsappUrl, "_blank");
+    setIsShareOpen(false);
   };
 
   return (
@@ -256,10 +523,10 @@ export function OrderDetails() {
             </div>
             {isOwner && (
               <button
-                onClick={handleShareInvoice}
+                onClick={() => setIsShareOpen(true)}
                 className="p-2 bg-accent/10 border border-accent/25 hover:bg-accent/20 active:scale-90 text-accent rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
-                title="Share Invoice"
-                aria-label="Share Invoice"
+                title="Share Order Details"
+                aria-label="Share Order Details"
               >
                 <Share2 size={18} />
               </button>
@@ -477,6 +744,72 @@ export function OrderDetails() {
           </Button>
         )}
       </main>
+
+      {/* Share Options Dialog */}
+      <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+        <DialogContent className="sm:max-w-md bg-card border border-border/50 rounded-3xl p-6">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-lg font-black text-foreground">Share Order Details</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Select an option to share or print details for {groupOrders.length > 1 ? `Group Order #${order.groupId}` : `Order #${order.id}`}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-3.5 mt-4">
+            <button
+              onClick={handleSharePdf}
+              disabled={isGeneratingPdf}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-[#E6F4EA] dark:bg-[#112417] border border-[#A3CFBB]/30 hover:bg-[#D4EDDA] dark:hover:bg-[#163620] active:scale-[0.98] transition-all text-left cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-success/15 text-success flex items-center justify-center shrink-0">
+                <FileText size={20} className="group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase font-extrabold tracking-wider text-success">
+                  {isGeneratingPdf ? "Generating PDF..." : "Share PDF via WhatsApp"}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Send the official order details PDF using your device's share sheet
+                </p>
+              </div>
+            </button>
+
+            <button
+              onClick={handleShareWhatsAppText}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-[#E8F0FE] dark:bg-[#10203F] border border-[#B0D4FF]/30 hover:bg-[#D2E3FC] dark:hover:bg-[#152B58] active:scale-[0.98] transition-all text-left cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-info/15 text-info flex items-center justify-center shrink-0">
+                <MessageSquare size={20} className="group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase font-extrabold tracking-wider text-info">
+                  Send WhatsApp Message
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Direct message with formatted order specifications summary
+                </p>
+              </div>
+            </button>
+
+            <button
+              onClick={handlePrintInvoice}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/40 border border-border/30 hover:bg-secondary/70 active:scale-[0.98] transition-all text-left cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-muted-foreground/10 text-foreground flex items-center justify-center shrink-0">
+                <Printer size={20} className="group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase font-extrabold tracking-wider text-foreground">
+                  Print or Save local PDF
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Open browser print preview to download or print job sheet
+                </p>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
