@@ -626,15 +626,11 @@ export function InventoryDashboard() {
                   {/* Product Details (Category, ID, Name) */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] uppercase tracking-wider font-black text-accent truncate max-w-[90px]">
-                        {product.category}
-                      </span>
-                      <span className="w-1 h-1 rounded-full bg-border" />
-                      <span className="text-xs font-mono text-muted-foreground/75">
+                      <span className="text-[10px] font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
                         {product.id}
                       </span>
                     </div>
-                    <h3 className="font-extrabold text-foreground text-sm leading-tight truncate mt-1">
+                    <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
                       {product.name}
                     </h3>
                   </div>
