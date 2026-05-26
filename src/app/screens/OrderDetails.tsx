@@ -6,7 +6,7 @@ import { Card } from "../components/ui/card";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrder } from "../hooks/useOrder";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Check, X, Calendar, Phone, User, Clock, Sparkles, Box, Info, Download } from "lucide-react";
+import { ArrowLeft, Check, X, Calendar, Phone, User, Clock, Sparkles, Box, Info, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function OrderDetails() {
@@ -84,12 +84,12 @@ export function OrderDetails() {
     }
   };
 
-  const handleDownloadInvoice = () => {
+  const handleShareInvoice = () => {
     if (!order) return;
-
+    
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      toast.error("Popup blocker prevented invoice download. Please allow popups.");
+      toast.error("Popup blocker prevented invoice sharing. Please allow popups.");
       return;
     }
 
@@ -256,12 +256,12 @@ export function OrderDetails() {
             </div>
             {isOwner && (
               <button
-                onClick={handleDownloadInvoice}
+                onClick={handleShareInvoice}
                 className="p-2 bg-accent/10 border border-accent/25 hover:bg-accent/20 active:scale-90 text-accent rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
-                title="Download Invoice"
-                aria-label="Download Invoice"
+                title="Share Invoice"
+                aria-label="Share Invoice"
               >
-                <Download size={18} />
+                <Share2 size={18} />
               </button>
             )}
           </div>
@@ -465,29 +465,17 @@ export function OrderDetails() {
         </Card>
 
         {/* Action Controls */}
-        <div className="space-y-3">
-          {isOwner && (
-            <Button
-              onClick={handleDownloadInvoice}
-              className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-accent hover:bg-accent/90 text-accent-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-accent/15 cursor-pointer transition-all active:scale-[0.98]"
-            >
-              <Sparkles size={14} className="animate-pulse text-[#FAF9F6]" />
-              Download Invoice Receipt
-            </Button>
-          )}
-
-          {canCancel && (
-            <Button
-              variant="destructive"
-              className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer"
-              disabled={isUpdating}
-              onClick={handleCancel}
-            >
-              <X size={15} className="mr-1.5" />
-              {isUpdating ? "Processing request…" : "Request Order Cancellation"}
-            </Button>
-          )}
-        </div>
+        {canCancel && (
+          <Button
+            variant="destructive"
+            className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer"
+            disabled={isUpdating}
+            onClick={handleCancel}
+          >
+            <X size={15} className="mr-1.5" />
+            {isUpdating ? "Processing request…" : "Request Order Cancellation"}
+          </Button>
+        )}
       </main>
     </div>
   );

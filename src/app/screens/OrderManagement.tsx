@@ -7,7 +7,7 @@ import { FAB } from "../components/FAB";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
-import { Search, Package, X, Layers, ChevronDown, ChevronUp, Clock, User, Calendar, ChevronRight } from "lucide-react";
+import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight } from "lucide-react";
 import type { TOrder } from "../models/types";
 
 export function OrderManagement() {
@@ -115,11 +115,6 @@ export function OrderManagement() {
                 Dwarik Door
               </p>
               <h1 className="text-2xl font-black tracking-tight text-primary-foreground mt-1">Orders</h1>
-            </div>
-            
-            <div className="flex items-center bg-primary-foreground/10 px-3 py-1 rounded-full border border-primary-foreground/5 shrink-0">
-              <Clock size={13} className="text-accent animate-pulse mr-1" />
-              <span className="text-xs font-black uppercase tracking-wider">Live Log</span>
             </div>
           </div>
 

@@ -27,14 +27,12 @@ function Toggle({
         type="button"
         aria-label={`Toggle ${label}`}
         onClick={onToggle}
-        className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${
-          on ? "bg-accent" : "bg-[#FAF9F6] border border-border"
-        }`}
+        className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${on ? "bg-accent" : "bg-[#FAF9F6] border border-border"
+          }`}
       >
         <span
-          className={`inline-block h-4 w-4 transform rounded-full shadow transition-transform duration-200 ${
-            on ? "translate-x-7 bg-[#FAF9F6]" : "translate-x-1 bg-muted-foreground/40"
-          }`}
+          className={`inline-block h-4 w-4 transform rounded-full shadow transition-transform duration-200 ${on ? "translate-x-7 bg-[#FAF9F6]" : "translate-x-1 bg-muted-foreground/40"
+            }`}
         />
       </button>
     </div>
@@ -82,7 +80,7 @@ export function PlaceOrderScreen() {
   // Phone validation
   const phoneError =
     customerPhone.length > 0 &&
-    !/^\d{10}$/.test(customerPhone.replace(/\s/g, ""))
+      !/^\d{10}$/.test(customerPhone.replace(/\s/g, ""))
       ? "Phone number must be exactly 10 digits"
       : null;
 
@@ -390,17 +388,16 @@ export function PlaceOrderScreen() {
                 <p className="text-[10px] font-mono text-muted-foreground">
                   {item.product.id}
                 </p>
-                
+
                 {/* Stock status indicator */}
                 <div className="mt-1.5 flex items-center">
                   <span
-                    className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${
-                      stockStatus === "available"
+                    className={`text-[9px] uppercase font-black px-2 py-0.5 rounded-full ${stockStatus === "available"
                         ? "bg-success/15 text-success"
                         : stockStatus === "low"
                           ? "bg-warning/15 text-warning"
                           : "bg-destructive/15 text-destructive"
-                    }`}
+                      }`}
                   >
                     {stockStatus === "available"
                       ? `${available} units available`
@@ -433,17 +430,16 @@ export function PlaceOrderScreen() {
                         key={u}
                         type="button"
                         onClick={() => onItemChange({ unit: u })}
-                        className={`flex-1 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                          item.unit === u
+                        className={`flex-1 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${item.unit === u
                             ? "bg-accent text-accent-foreground shadow-sm"
                             : "bg-[#1E1311]/5 text-muted-foreground hover:bg-[#1E1311]/10"
-                        }`}
+                          }`}
                       >
                         {u.toUpperCase()}
                       </button>
                     ))}
                   </div>
-                  
+
                   {/* Height & Width Inputs */}
                   <div className="grid grid-cols-2 gap-3.5">
                     <div className="space-y-1">
@@ -480,7 +476,7 @@ export function PlaceOrderScreen() {
                 </div>
               )}
             </div>
- 
+
             {/* Packaging Option Selector */}
             <div className="space-y-2">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -492,11 +488,10 @@ export function PlaceOrderScreen() {
                     key={p}
                     type="button"
                     onClick={() => onItemChange({ packaging: p })}
-                    className={`flex-1 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                      item.packaging === p
+                    className={`flex-1 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${item.packaging === p
                         ? "bg-accent text-accent-foreground shadow-sm scale-[1.01]"
                         : "bg-[#1E1311]/5 text-muted-foreground hover:bg-[#1E1311]/10"
-                    }`}
+                      }`}
                   >
                     {p === "carton" ? "Carton" : "Plastic"}
                   </button>
@@ -566,7 +561,7 @@ export function PlaceOrderScreen() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-12 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
-      
+
       {/* Brand Header consistent with other pages */}
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto flex items-center gap-3">
@@ -588,7 +583,7 @@ export function PlaceOrderScreen() {
 
       <main className="max-w-lg mx-auto px-4 py-5">
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+
           {/* Order type Toggle card */}
           <Card className="p-4 border-border/50 shadow-sm rounded-3xl flex flex-col gap-0 bg-card relative overflow-hidden">
             <Toggle
@@ -615,7 +610,7 @@ export function PlaceOrderScreen() {
                 Customer Specifications
               </h3>
             </div>
-            
+
             {/* Customer Name */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -629,7 +624,7 @@ export function PlaceOrderScreen() {
                 required
               />
             </div>
-            
+
             {/* Phone Number */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
