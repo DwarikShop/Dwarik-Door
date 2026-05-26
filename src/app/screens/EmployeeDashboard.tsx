@@ -236,7 +236,7 @@ export function EmployeeDashboard() {
                         <>
                           <span className="w-1 h-1 rounded-full bg-border shrink-0" />
                           <span className="text-xs font-bold text-muted-foreground truncate">
-                            Client: <span className="text-foreground">{order.customerName}</span>
+                            Customer: <span className="text-foreground">{order.customerName}</span>
                           </span>
                         </>
                       )}

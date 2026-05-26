@@ -611,64 +611,64 @@ export function InventoryDashboard() {
                 key={product.id}
                 className="bg-card border border-border/40 hover:border-border/80 rounded-2xl overflow-hidden shadow-sm transition-all duration-200"
               >
-                {/* Horizontal row layout */}
-                <div className="flex items-center gap-3.5 p-3">
-                  
-                  {/* Small avatar thumbnail */}
-                  <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border/40 bg-secondary/30 relative">
-                    <img
-                      src={product.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
-                      alt={product.name}
-                      className="w-full h-full object-cover animate-[fadeIn_0.2s_ease-out]"
-                    />
-                  </div>
-
-                  {/* Product Details (Category, ID, Name) */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
-                        {product.id}
-                      </span>
-                    </div>
-                    <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
-                      {product.name}
-                    </h3>
-                  </div>
-
-                  {/* Action Stock counts */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {/* Available pill */}
-                    <div className="flex flex-col items-center bg-success/5 border border-success/15 px-2 py-1 rounded-lg min-w-[36px]">
-                      <span className="text-xs font-black text-success leading-none">{available}</span>
-                      <span className="text-[8px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Avail</span>
-                    </div>
-                    
-                    {/* Reserved pill */}
-                    <div className="flex flex-col items-center bg-info/5 border border-info/15 px-2 py-1 rounded-lg min-w-[36px]">
-                      <span className="text-xs font-black text-info leading-none">{product.reserved}</span>
-                      <span className="text-[8px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Resv</span>
+                {/* Product Core Row (Image + Name & ID) */}
+                <div className="flex items-start justify-between gap-3 p-3">
+                  <div className="flex gap-3.5 items-start flex-1 min-w-0">
+                    {/* Small avatar thumbnail */}
+                    <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-border/40 bg-secondary/30 relative">
+                      <img
+                        src={product.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
+                        alt={product.name}
+                        className="w-full h-full object-cover animate-[fadeIn_0.2s_ease-out]"
+                      />
                     </div>
 
-                    {/* Damaged pill — only show if > 0 to save space */}
-                    {product.damaged > 0 ? (
-                      <div className="flex flex-col items-center bg-destructive/5 border border-destructive/15 px-2 py-1 rounded-lg min-w-[36px]">
-                        <span className="text-xs font-black text-destructive leading-none">{product.damaged}</span>
-                        <span className="text-[8px] uppercase font-bold text-muted-foreground/80 mt-0.5 leading-none">Dmg</span>
+                    {/* Product Details (ID & Name) */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
+                          {product.id}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="w-[36px] h-0 shrink-0" /> // Spacer block to align
-                    )}
-
-                    {isOwner && (
-                      <button
-                        onClick={() => openEdit(product)}
-                        className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer ml-0.5"
-                        aria-label={`Edit ${product.name}`}
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                    )}
+                      <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
+                        {product.name}
+                      </h3>
+                    </div>
                   </div>
+
+                  {/* Edit action positioned nicely in top right */}
+                  {isOwner && (
+                    <button
+                      onClick={() => openEdit(product)}
+                      className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer shrink-0"
+                      aria-label={`Edit ${product.name}`}
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Stock Counts Row - Moved below for excellent readability */}
+                <div className="px-3 pb-3 pt-2 border-t border-border/10 flex items-center gap-2 flex-wrap">
+                  {/* Available pill */}
+                  <div className="flex items-center gap-1.5 bg-success/5 border border-success/15 px-2.5 py-1 rounded-lg text-xs">
+                    <span className="text-[9px] uppercase font-black text-muted-foreground/80 leading-none">Available:</span>
+                    <span className="font-black text-success leading-none">{available}</span>
+                  </div>
+                  
+                  {/* Reserved pill */}
+                  <div className="flex items-center gap-1.5 bg-info/5 border border-info/15 px-2.5 py-1 rounded-lg text-xs">
+                    <span className="text-[9px] uppercase font-black text-muted-foreground/80 leading-none">Reserved:</span>
+                    <span className="font-black text-info leading-none">{product.reserved}</span>
+                  </div>
+
+                  {/* Damaged pill — only show if > 0 */}
+                  {product.damaged > 0 && (
+                    <div className="flex items-center gap-1.5 bg-destructive/5 border border-destructive/15 px-2.5 py-1 rounded-lg text-xs">
+                      <span className="text-[9px] uppercase font-black text-muted-foreground/80 leading-none">Damaged:</span>
+                      <span className="font-black text-destructive leading-none">{product.damaged}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Subtitle warning strip (very tight & clean) */}

@@ -215,7 +215,7 @@ export function EmployeeOrderWorkflow() {
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground flex items-center gap-1.5">
-                <User size={11} className="text-muted-foreground/60" /> Client Name
+                <User size={11} className="text-muted-foreground/60" /> Customer Name
               </span>
               <span className="font-bold text-foreground">
                 {order.customerName || "Walk-in Customer"}
@@ -316,7 +316,7 @@ export function EmployeeOrderWorkflow() {
                   Shipment Dispatched
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px] leading-relaxed">
-                  This door order has been manufactured and shipped to the client.
+                  This door order has been manufactured and shipped to the customer.
                 </p>
               </div>
             )}
@@ -362,7 +362,7 @@ export function EmployeeOrderWorkflow() {
                   placeholder="Provide explicit reasons for returning stock or marking it as damaged…"
                   value={rejectComment}
                   onChange={(e) => setRejectComment(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-[#FAF9F6]/40 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed"
+                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-secondary/35 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed"
                   rows={3}
                 />
               </div>

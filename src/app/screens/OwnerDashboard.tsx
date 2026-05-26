@@ -452,7 +452,7 @@ export function OwnerDashboard() {
                       Ready for Shipment
                     </p>
                     <p className="text-xs text-success/70 mt-1 leading-snug">
-                      {stats.done} door order{stats.done > 1 ? "s are" : " is"} completed and waiting to be marked as shipped to clientes.
+                      {stats.done} door order{stats.done > 1 ? "s are" : " is"} completed and waiting to be marked as shipped to customers.
                     </p>
                   </div>
                 </button>

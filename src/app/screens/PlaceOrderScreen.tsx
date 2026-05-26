@@ -98,7 +98,7 @@ export function PlaceOrderScreen() {
 
   // Dropdown lazy loading indices
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
-  const [visibleCount, setVisibleCount] = useState(3);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   // Filter products by ID or Name
   const filterProducts = (term: string) => {
@@ -288,7 +288,7 @@ export function PlaceOrderScreen() {
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
       const target = e.currentTarget;
       if (target.scrollHeight - target.scrollTop <= target.clientHeight + 25) {
-        setVisibleCount((prev) => prev + 3);
+        setVisibleCount((prev) => prev + 12);
       }
     };
 
@@ -314,14 +314,14 @@ export function PlaceOrderScreen() {
               value={search}
               onFocus={() => {
                 setActiveSearchIndex(index !== undefined ? index : -1);
-                setVisibleCount(3);
+                setVisibleCount(12);
               }}
               onBlur={() => {
                 setTimeout(() => setActiveSearchIndex(null), 250);
               }}
               onChange={(e) => {
                 onSearchChange(e.target.value);
-                setVisibleCount(3);
+                setVisibleCount(12);
               }}
               disabled={productsLoading}
               className="w-full h-11 pl-10 pr-10 rounded-2xl bg-[#1E1311]/5 border border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 text-xs transition-all disabled:opacity-50"
@@ -331,7 +331,7 @@ export function PlaceOrderScreen() {
                 type="button"
                 onClick={() => {
                   onSearchChange("");
-                  setVisibleCount(3);
+                  setVisibleCount(12);
                 }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-secondary rounded-full text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
@@ -553,7 +553,7 @@ export function PlaceOrderScreen() {
                   onChange={(e) =>
                     onItemChange({ customizationText: e.target.value })
                   }
-                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-[#FAF9F6]/40 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed animate-[fadeIn_0.2s_ease-out]"
+                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-secondary/35 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed animate-[fadeIn_0.2s_ease-out]"
                   rows={3}
                 />
               )}
@@ -579,7 +579,7 @@ export function PlaceOrderScreen() {
           </button>
           <div>
             <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
-              Client Portal
+              Customer Portal
             </p>
             <h1 className="text-base font-bold tracking-tight text-primary-foreground mt-0.5">Place Order</h1>
           </div>
@@ -603,7 +603,7 @@ export function PlaceOrderScreen() {
             <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed">
               {isGroupOrder
                 ? "Process multiple door catalog items under one customer reference, grouped together."
-                : "Standard single door catalog item order for one client."}
+                : "Standard single door catalog item order for one customer."}
             </p>
           </Card>
 
@@ -622,7 +622,7 @@ export function PlaceOrderScreen() {
                 Customer Name
               </label>
               <Input
-                placeholder="Enter client's full name"
+                placeholder="Enter customer's full name"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className="h-10 rounded-xl bg-[#1E1311]/5 border-border/60 focus-visible:ring-accent/20 text-xs"

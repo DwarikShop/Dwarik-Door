@@ -6,13 +6,13 @@ import { Card } from "../components/ui/card";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrder } from "../hooks/useOrder";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Check, X, Calendar, Phone, User, Clock, Sparkles, Box, Info } from "lucide-react";
+import { ArrowLeft, Check, X, Calendar, Phone, User, Clock, Sparkles, Box, Info, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { order, isLoading, isUpdating, updateStatus } = useOrder(id);
 
   if (isLoading) {
@@ -84,9 +84,143 @@ export function OrderDetails() {
     }
   };
 
+  const handleDownloadInvoice = () => {
+    if (!order) return;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast.error("Popup blocker prevented invoice download. Please allow popups.");
+      return;
+    }
+
+    const cleanCustomerName = (order.customerName || "Customer")
+      .trim()
+      .replace(/[^a-zA-Z0-9]/g, "_");
+    const docTitle = `Invoice_${order.id}_${cleanCustomerName}`;
+
+    const htmlContent = `
+<html>
+<head>
+  <title>${docTitle}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
+    body {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      background-color: #ffffff;
+      color: #1A1210;
+      padding: 40px;
+    }
+    .invoice-container {
+      max-width: 800px;
+      margin: 0 auto;
+      border: 1px solid #e5e7eb;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container border-t-8 border-amber-800">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8 pb-6 border-b border-gray-100">
+      <div>
+        <h1 class="text-3xl font-black tracking-tight text-amber-900">DWARIK DOOR</h1>
+        <p class="text-xs uppercase font-extrabold tracking-wider text-amber-800 mt-1">Premium Bespoke Timbercraft</p>
+        <p class="text-xs text-gray-500 mt-2">12, Gopinath Industrial Estate, Gujarat, India</p>
+        <p class="text-xs text-gray-500">Support: contact@dwarikdoor.com | +91 99988 87766</p>
+      </div>
+      <div class="text-right">
+        <h2 class="text-lg font-bold text-gray-800">INVOICE RECEIPT</h2>
+        <p class="text-xs font-mono font-bold text-amber-800 mt-1">#${order.id}</p>
+        <p class="text-xs text-gray-500 mt-1">Date: ${new Date(order.createdAt!).toLocaleDateString('en-IN')}</p>
+      </div>
+    </div>
+
+    <!-- Customer & Order details grid -->
+    <div class="grid grid-cols-2 gap-8 mb-8">
+      <div>
+        <h3 class="text-xs uppercase font-extrabold tracking-wider text-gray-400 mb-2">Customer Details</h3>
+        <p class="text-sm font-bold text-gray-800">${order.customerName || 'Walk-in Customer'}</p>
+        <p class="text-xs text-gray-500 mt-1">Phone: ${order.customerPhone || 'Not Provided'}</p>
+      </div>
+      <div>
+        <h3 class="text-xs uppercase font-extrabold tracking-wider text-gray-400 mb-2">Order Information</h3>
+        <p class="text-xs text-gray-500">Status: <span class="capitalize font-bold text-amber-800">${order.status}</span></p>
+        <p class="text-xs text-gray-500 mt-1">Assigned Operator: <span class="capitalize font-bold">${order.assignedTo || 'Unassigned'}</span></p>
+        <p class="text-xs text-gray-500 mt-1">Last Updated: ${new Date(order.updatedAt!).toLocaleDateString('en-IN')}</p>
+      </div>
+    </div>
+
+    <!-- Product Table -->
+    <div class="mb-8">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b-2 border-amber-950/10 bg-amber-50/50">
+            <th class="py-3 px-4 text-xs uppercase font-extrabold tracking-wider text-amber-900">Product Specifications</th>
+            <th class="py-3 px-4 text-xs uppercase font-extrabold tracking-wider text-amber-900 text-center">Dimensions</th>
+            <th class="py-3 px-4 text-xs uppercase font-extrabold tracking-wider text-amber-900 text-center">Packaging</th>
+            <th class="py-3 px-4 text-xs uppercase font-extrabold tracking-wider text-amber-900 text-right">Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-100">
+            <td class="py-4 px-4">
+              <div class="flex items-center gap-3">
+                <img src="${order.productImage || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=100&h=150&fit=crop'}" class="w-12 h-16 rounded object-cover border border-gray-200" />
+                <div>
+                  <p class="text-xs font-mono font-bold text-amber-800">${order.productId}</p>
+                  <p class="text-sm font-bold text-gray-800 mt-0.5">${order.productName}</p>
+                  ${order.customization ? `<p class="text-[10px] text-gray-500 mt-1 italic">Note: ${order.customization}</p>` : ''}
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-4 text-xs text-center font-bold text-gray-700">
+              ${order.freeSize ? 'Free Size' : `${order.height} × ${order.width} ${order.unit}`}
+            </td>
+            <td class="py-4 px-4 text-xs text-center font-bold text-gray-700 capitalize">
+              ${order.packaging || 'Plastic Wrap'}
+            </td>
+            <td class="py-4 px-4 text-sm font-black text-right text-amber-900">
+              ${order.quantity} Units
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Quality Guarantee Footer -->
+    <div class="p-4 bg-amber-50/50 border border-amber-900/10 rounded-xl text-center mb-8">
+      <p class="text-[10px] uppercase font-black tracking-widest text-amber-900">Dwarik Genuine Seal</p>
+      <p class="text-[10px] text-amber-800/80 leading-relaxed mt-1">This document verifies the order placement for custom-seasoned hardwood timber products manufactured under strict ISO quality benchmarks. All products are warranted against structural defects.</p>
+    </div>
+
+    <!-- Thank you footer -->
+    <div class="text-center text-xs text-gray-400">
+      <p>Thank you for choosing Dwarik Door — Graining Elegance into Spaces.</p>
+      <p class="mt-1 text-[10px]">Generated electronically on ${new Date().toLocaleDateString('en-IN')}</p>
+    </div>
+  </div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+        window.close();
+      }, 500);
+    };
+  </script>
+</body>
+</html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-12 font-sans select-none animate-[fadeIn_0.2s_ease-out]">
-      
+
       {/* Brand Header consistent with other pages */}
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
         <div className="max-w-lg mx-auto flex items-center justify-between">
@@ -110,16 +244,26 @@ export function OrderDetails() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-5 space-y-4">
-        
+
         {/* Core Product Catalog Details Card */}
         <Card className="p-5 border-border/50 shadow-sm rounded-3xl relative overflow-hidden flex flex-col gap-0 bg-card">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent opacity-80" />
-          
-          <div className="flex justify-between items-start gap-4 mb-4">
+
+          <div className="flex justify-between items-center gap-4 mb-4">
             <div>
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-accent">Order Reference</span>
               <p className="text-sm font-mono font-bold text-foreground mt-0.5">{order.id}</p>
             </div>
+            {isOwner && (
+              <button
+                onClick={handleDownloadInvoice}
+                className="p-2 bg-accent/10 border border-accent/25 hover:bg-accent/20 active:scale-90 text-accent rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
+                title="Download Invoice"
+                aria-label="Download Invoice"
+              >
+                <Download size={18} />
+              </button>
+            )}
           </div>
 
           <div className="flex gap-4 items-center">
@@ -131,7 +275,7 @@ export function OrderDetails() {
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <span className="text-[8px] uppercase tracking-wider font-black text-accent/80 block leading-none mb-1">
                 {order.productId}
@@ -139,7 +283,7 @@ export function OrderDetails() {
               <h3 className="font-extrabold text-foreground text-sm leading-snug line-clamp-2">
                 {order.productName}
               </h3>
-              
+
               {/* Size & Specs Grid layout */}
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5 pt-2 border-t border-border/30">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -193,11 +337,11 @@ export function OrderDetails() {
             <User size={14} className="text-accent" />
             <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider">Customer Details</h3>
           </div>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground flex items-center gap-1.5">
-                <User size={11} className="text-muted-foreground/60" /> Client Name
+                <User size={11} className="text-muted-foreground/60" /> Customer Name
               </span>
               <span className="font-bold text-foreground">
                 {order.customerName || "Walk-in Customer"}
@@ -234,25 +378,23 @@ export function OrderDetails() {
             {timeline.map((step, index) => {
               const isActive = step.active;
               const isCurrent = step.status === order.status;
-              
+
               return (
                 <div key={step.status} className="flex gap-4 relative pb-6 last:pb-0">
                   {/* Timeline path line */}
                   {index < timeline.length - 1 && (
                     <div
-                      className={`absolute left-3.5 top-7 w-0.5 h-[calc(100%-14px)] transition-colors duration-300 ${
-                        isActive ? "bg-accent" : "bg-border"
-                      }`}
+                      className={`absolute left-3.5 top-7 w-0.5 h-[calc(100%-14px)] transition-colors duration-300 ${isActive ? "bg-accent" : "bg-border"
+                        }`}
                     />
                   )}
-                  
+
                   {/* Timeline ring */}
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 border transition-all duration-300 ${
-                      isActive
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 border transition-all duration-300 ${isActive
                         ? "bg-accent border-accent text-accent-foreground shadow shadow-accent/15"
                         : "bg-secondary border-border text-muted-foreground/60"
-                    }`}
+                      }`}
                   >
                     {isActive ? (
                       <Check size={12} strokeWidth={3} className="animate-[scaleIn_0.2s_ease-out]" />
@@ -264,9 +406,8 @@ export function OrderDetails() {
                   {/* Step texts */}
                   <div className="flex-1 pt-0.5">
                     <p
-                      className={`text-xs uppercase tracking-wider font-extrabold transition-colors duration-300 ${
-                        isActive ? "text-foreground" : "text-muted-foreground/60"
-                      }`}
+                      className={`text-xs uppercase tracking-wider font-extrabold transition-colors duration-300 ${isActive ? "text-foreground" : "text-muted-foreground/60"
+                        }`}
                     >
                       {step.label}
                     </p>
@@ -324,17 +465,29 @@ export function OrderDetails() {
         </Card>
 
         {/* Action Controls */}
-        {canCancel && (
-          <Button
-            variant="destructive"
-            className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer"
-            disabled={isUpdating}
-            onClick={handleCancel}
-          >
-            <X size={15} className="mr-1.5" />
-            {isUpdating ? "Processing request…" : "Request Order Cancellation"}
-          </Button>
-        )}
+        <div className="space-y-3">
+          {isOwner && (
+            <Button
+              onClick={handleDownloadInvoice}
+              className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-accent hover:bg-accent/90 text-accent-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-accent/15 cursor-pointer transition-all active:scale-[0.98]"
+            >
+              <Sparkles size={14} className="animate-pulse text-[#FAF9F6]" />
+              Download Invoice Receipt
+            </Button>
+          )}
+
+          {canCancel && (
+            <Button
+              variant="destructive"
+              className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer"
+              disabled={isUpdating}
+              onClick={handleCancel}
+            >
+              <X size={15} className="mr-1.5" />
+              {isUpdating ? "Processing request…" : "Request Order Cancellation"}
+            </Button>
+          )}
+        </div>
       </main>
     </div>
   );

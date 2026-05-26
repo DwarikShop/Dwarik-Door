@@ -107,7 +107,7 @@ export function LoginScreen() {
             Crafting Outstanding First Impressions.
           </h2>
           <p className="text-xs text-[#FAF9F6]/60 leading-relaxed max-w-sm">
-            Access your unified workspace to manage the premium door catalogue, track client delivery schedules, and trace stock updates with absolute real-time accuracy.
+            Access your unified workspace to manage the premium door catalogue, track customer delivery schedules, and trace stock updates with absolute real-time accuracy.
           </p>
         </div>
 

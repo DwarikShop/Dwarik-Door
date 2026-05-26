@@ -16,12 +16,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState<boolean>(() => {
     // Guard against SSR — window is not available on the server
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") return true;
     try {
       const stored = localStorage.getItem("dwarik-theme");
       if (stored) return stored === "dark";
     } catch {}
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return true; // Default to dark mode
   });
 
   useEffect(() => {

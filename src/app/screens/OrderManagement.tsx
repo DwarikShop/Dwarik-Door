@@ -239,7 +239,7 @@ export function OrderManagement() {
                     <div className="flex items-center justify-between mt-1 text-[11px] text-muted-foreground">
                       {order.customerName ? (
                         <span className="truncate mr-2">
-                          Client: <span className="font-semibold text-foreground">{order.customerName}</span>
+                          Customer: <span className="font-semibold text-foreground">{order.customerName}</span>
                         </span>
                       ) : (
                         <span></span>
