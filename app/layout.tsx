@@ -4,8 +4,8 @@ import "@/styles/index.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dwarik Door",
-    template: "%s | Dwarik Door",
+    default: "Dwarik",
+    template: "%s | Dwarik",
   },
   description:
     "Premium Door Manufacturing — Order, Inventory & Employee Management",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Dwarik Door",
+    title: "Dwarik",
   },
   icons: {
     icon: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     ],
   },
   keywords: ["door manufacturing", "inventory", "orders", "employees"],
-  authors: [{ name: "Dwarik Door" }],
+  authors: [{ name: "Dwarik" }],
 };
 
 export const viewport: Viewport = {

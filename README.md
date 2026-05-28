@@ -28,7 +28,7 @@ MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/dwarik
 # JWT signing secret (32-byte hex)
 AUTH_SECRET=<run: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 
-NEXT_PUBLIC_APP_NAME=Dwarik Door
+NEXT_PUBLIC_APP_NAME=Dwarik
 NEXT_PUBLIC_APP_VERSION=1.0.0
 ```
 
