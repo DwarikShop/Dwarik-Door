@@ -11,7 +11,6 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { employees as mockEmployees } from "../data/mockData";
 import type { TEmployee, UserRole } from "../models/types";
 import { useAuth } from "../context/AuthContext";
 
@@ -72,9 +71,8 @@ export function useEmployees(): UseEmployeesResult {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: SafeEmployee[] = await res.json();
       setEmployees(data);
-    } catch {
-      // Fall back to mock data (without passwords)
-      setEmployees(mockEmployees.map(({ password: _pw, ...e }) => e));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load employees");
     } finally {
       setIsLoading(false);
     }

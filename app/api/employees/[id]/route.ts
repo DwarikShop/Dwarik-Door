@@ -9,7 +9,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Employee } from "@/app/models";
-import { employees as mockEmployees } from "@/app/data/mockData";
 import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
 import { cookies } from "next/headers";
 
@@ -33,21 +32,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     if (employee) return NextResponse.json(employee);
 
-    // Not in DB — check mock data
-    const mock = mockEmployees.find((e) => e.id === id);
-    if (mock) {
-      const { password: _pw, ...safe } = mock;
-      return NextResponse.json(safe);
-    }
-
     return NextResponse.json({ error: "Employee not found" }, { status: 404 });
-  } catch {
-    const mock = mockEmployees.find((e) => e.id === id);
-    if (mock) {
-      const { password: _pw, ...safe } = mock;
-      return NextResponse.json(safe);
-    }
-    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  } catch (err) {
+    console.error(`[GET /api/employees/${id}]`, err);
+    return NextResponse.json(
+      { error: "Database error or connection failed" },
+      { status: 500 },
+    );
   }
 }
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "motion/react";
-import { ArrowLeft, Phone, Lock, Eye, EyeOff, ShieldCheck, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowLeft, Phone, Lock, Eye, EyeOff, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export function LoginScreen() {
@@ -44,13 +44,7 @@ export function LoginScreen() {
     }
   };
 
-  const fillDemoCredentials = (phoneStr: string, passStr: string) => {
-    setPhone(phoneStr);
-    setPassword(passStr);
-    toast.success("Demo credentials loaded! Tap 'Login' to proceed.", {
-      duration: 2000,
-    });
-  };
+
 
   return (
     <div className="min-h-screen w-full flex font-sans select-none bg-[#FAF9F6] dark:bg-[#150F0D] overflow-hidden relative">
@@ -227,53 +221,7 @@ export function LoginScreen() {
             </button>
           </form>
 
-          {/* Quick autofills */}
-          <div className="pt-6 border-t border-black/5 dark:border-white/5 space-y-4">
-            <div className="flex items-center gap-1.5 justify-center md:justify-start text-[#9E8070]/60">
-              <ShieldCheck size={14} className="text-accent" />
-              <span className="text-[10px] uppercase font-bold tracking-widest leading-none">
-                One-tap Demo Access
-              </span>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              {/* Owner autofill */}
-              <button
-                type="button"
-                onClick={() => fillDemoCredentials("9876543210", "admin123")}
-                className="group/chip flex items-center gap-2 bg-white dark:bg-[#231917]/30 hover:bg-[#FAF9F6] dark:hover:bg-[#2E1F1A] active:scale-[0.97] border border-black/5 dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/30 p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer shadow-sm"
-              >
-                <div className="w-8 h-8 rounded-lg bg-accent/15 group-hover/chip:bg-accent/25 flex items-center justify-center text-accent text-xs font-black transition-all shrink-0">
-                  OW
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[10px] font-black text-foreground/80 group-hover/chip:text-accent transition-colors flex items-center gap-0.5">
-                    Owner
-                    <ChevronRight size={10} className="opacity-40 group-hover/chip:translate-x-0.5 transition-transform" />
-                  </div>
-                  <div className="text-[9px] text-muted-foreground/60 truncate leading-none mt-0.5">Ashis</div>
-                </div>
-              </button>
-
-              {/* Employee autofill */}
-              <button
-                type="button"
-                onClick={() => fillDemoCredentials("9876543211", "emp123")}
-                className="group/chip flex items-center gap-2 bg-white dark:bg-[#231917]/30 hover:bg-[#FAF9F6] dark:hover:bg-[#2E1F1A] active:scale-[0.97] border border-black/5 dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/30 p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer shadow-sm"
-              >
-                <div className="w-8 h-8 rounded-lg bg-[#4E342E]/10 dark:bg-[#4E342E]/20 group-hover/chip:bg-[#4E342E]/20 dark:group-hover/chip:bg-[#4E342E]/40 flex items-center justify-center text-accent text-xs font-black transition-all shrink-0">
-                  EM
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[10px] font-black text-foreground/80 group-hover/chip:text-accent transition-colors flex items-center gap-0.5">
-                    Staff
-                    <ChevronRight size={10} className="opacity-40 group-hover/chip:translate-x-0.5 transition-transform" />
-                  </div>
-                  <div className="text-[9px] text-muted-foreground/60 truncate leading-none mt-0.5">Operator</div>
-                </div>
-              </button>
-            </div>
-          </div>
 
         </motion.div>
       </div>

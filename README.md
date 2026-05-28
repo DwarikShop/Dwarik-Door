@@ -44,12 +44,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-## Demo Credentials
+## Owner Credentials
 
-| Role | Phone | Password |
-|------|-------|----------|
-| Owner | 9876543210 | admin123 |
-| Employee | 9876543211 | emp123 |
+Initialize the owner account in the database using:
+```bash
+npm run seed
+```
+This seeds the initial owner:
+- **Phone**: `9776245349`
+- **Owner Name**: `Dhiraj`
 
 ## Deploy to Vercel
 

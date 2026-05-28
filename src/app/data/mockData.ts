@@ -119,36 +119,7 @@ export const products: Product[] = [
   }
 ];
 
-export const employees: Employee[] = [
-  {
-    id: 'EMP-001',
-    name: 'Rajesh Kumar',
-    phone: '9876543210',
-    role: 'owner',
-    password: 'admin123'
-  },
-  {
-    id: 'EMP-002',
-    name: 'Suresh Patel',
-    phone: '9876543211',
-    role: 'employee',
-    password: 'emp123'
-  },
-  {
-    id: 'EMP-003',
-    name: 'Amit Sharma',
-    phone: '9876543212',
-    role: 'employee',
-    password: 'emp123'
-  },
-  {
-    id: 'EMP-004',
-    name: 'Vikram Singh',
-    phone: '9876543213',
-    role: 'employee',
-    password: 'emp123'
-  }
-];
+export const employees: Employee[] = [];
 
 export const orders: Order[] = [
   {

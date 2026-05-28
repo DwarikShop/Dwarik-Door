@@ -8,7 +8,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Employee } from "@/app/models";
-import { employees as mockEmployees } from "@/app/data/mockData";
 import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
 import { cookies } from "next/headers";
 
@@ -29,17 +28,13 @@ export async function GET() {
       .sort({ id: 1 })
       .lean();
 
-    // Fall back to mock data if DB is empty (not seeded yet)
-    if (employees.length === 0) {
-      return NextResponse.json(
-        mockEmployees.map(({ password: _pw, ...e }) => e),
-      );
-    }
-
     return NextResponse.json(employees);
-  } catch {
-    // DB unavailable — return mock data without passwords
-    return NextResponse.json(mockEmployees.map(({ password: _pw, ...e }) => e));
+  } catch (err) {
+    console.error("[GET /api/employees]", err);
+    return NextResponse.json(
+      { error: "Failed to fetch employees from database" },
+      { status: 500 },
+    );
   }
 }
 

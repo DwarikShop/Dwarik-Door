@@ -12,7 +12,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Order } from "@/app/models";
-import { orders as mockOrders } from "@/app/data/mockData";
 import type { OrderStatus } from "@/app/models/types";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -26,7 +25,7 @@ const ALL_STATUSES: OrderStatus[] = [
   "rejected",
 ];
 
-// Shared summary builder — works with both Mongoose lean docs and mock data
+// Shared summary builder — works with Mongoose lean docs
 function buildSummary(
   employeeId: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,16 +58,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
       .sort({ updatedAt: -1 })
       .lean();
 
-    // Fall back to mock data if DB is empty (not seeded yet)
-    const source =
-      orders.length === 0
-        ? mockOrders.filter((o) => o.assignedTo === id)
-        : orders;
-
-    return NextResponse.json(buildSummary(id, source));
-  } catch {
-    // DB unavailable — use mock data
-    const source = mockOrders.filter((o) => o.assignedTo === id);
-    return NextResponse.json(buildSummary(id, source));
+    return NextResponse.json(buildSummary(id, orders));
+  } catch (err) {
+    console.error(`[GET /api/employees/${id}/activity]`, err);
+    return NextResponse.json(
+      { error: "Failed to fetch employee activity from database" },
+      { status: 500 },
+    );
   }
 }

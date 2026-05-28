@@ -43,24 +43,20 @@ async function seed() {
 
   // ── Employees ─────────────────────────────────────────────────────────────
   console.log("👥  Seeding employees...");
-  const employeeResults = await Promise.all(
-    employees.map((e) =>
-      Employee.findOneAndUpdate(
-        { id: e.id },
-        {
-          $setOnInsert: {
-            id: e.id,
-            name: e.name,
-            phone: e.phone,
-            role: e.role,
-            password: e.password,
-          },
-        },
-        { upsert: true, new: true },
-      ),
-    ),
-  );
-  console.log(`   ✓ ${employeeResults.length} employees seeded\n`);
+  // Seed the owner "Dhiraj" only if no owner exists in the database
+  const ownerExists = await Employee.findOne({ role: "owner" });
+  if (!ownerExists) {
+    await Employee.create({
+      id: "EMP-001",
+      name: "Dhiraj",
+      phone: "9776245349",
+      role: "owner",
+      password: "change-me-immediately", // Placeholder to change immediately
+    });
+    console.log("   ✓ Initial owner seeded (Dhiraj / 9776245349)\n");
+  } else {
+    console.log("   ✓ Owner already exists, skipping initial owner seed\n");
+  }
 
   // ── Orders ────────────────────────────────────────────────────────────────
   // Use $set (not $setOnInsert) to avoid conflict with timestamps: true
