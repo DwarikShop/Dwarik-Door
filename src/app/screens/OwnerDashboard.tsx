@@ -123,17 +123,17 @@ export function OwnerDashboard() {
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
       
       {/* Brand Header consistent with other pages */}
-      <header className="bg-primary text-primary-foreground px-4 pt-8 pb-5 sticky top-0 z-40 shadow-md">
+      <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-4 pt-8 pb-5 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
         <div className="max-w-lg mx-auto flex items-start justify-between">
           <div>
-            <p className="text-xs text-primary-foreground/75 font-extrabold uppercase tracking-widest leading-none mb-1.5">
+            <p className="text-[11px] text-neutral-400/80 font-extrabold uppercase tracking-widest leading-none mb-2">
               {greeting()},
             </p>
-            <h1 className="text-2xl font-black tracking-tight leading-none text-primary-foreground flex items-center gap-1.5">
+            <h1 className="text-3xl font-black tracking-tight leading-none text-white flex items-center gap-2">
               <span>{user?.name?.split(" ")[0] || "Owner"}</span>
-              <Sparkles size={18} className="text-accent animate-pulse" />
+              <Sparkles size={20} className="text-accent animate-pulse" />
             </h1>
-            <p className="text-xs text-[#DAB668] font-bold mt-2.5">
+            <p className="text-[11px] text-accent font-bold mt-3">
               {fmtDate()}
             </p>
           </div>
@@ -141,11 +141,11 @@ export function OwnerDashboard() {
           <button
             aria-label="Notifications"
             onClick={() => setShowNotifications(true)}
-            className="relative p-2.5 bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-full active:scale-90 transition-all cursor-pointer border border-primary-foreground/5"
+            className="relative p-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl active:scale-90 transition-all cursor-pointer border border-white/15 shadow-sm"
           >
-            <Bell size={20} />
+            <Bell size={20} className="text-neutral-300 hover:text-white transition-colors" />
             {hasAlerts && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full animate-ping" />
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-accent rounded-full animate-ping shadow-[0_0_8px_rgba(218,182,104,0.6)]" />
             )}
           </button>
         </div>
@@ -193,47 +193,35 @@ export function OwnerDashboard() {
         )}
 
         {/* ── Section 2: Today's Pulse ── */}
-        <section className="space-y-2">
+        <section className="space-y-2.5 animate-[fadeIn_0.3s_ease-out]">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Activity size={14} className="text-accent" />
-              <h2 className="text-xs font-black uppercase tracking-wider">Today's Pulse</h2>
+              <h2 className="text-sm font-black uppercase tracking-wider">Today's Pulse</h2>
             </div>
-            
             <button
               onClick={() => router.push("/orders")}
-              className="text-xs text-accent font-black uppercase tracking-wider flex items-center gap-0.5 cursor-pointer"
+              className="text-[10px] text-accent font-black uppercase tracking-wider flex items-center gap-0.5 cursor-pointer hover:underline"
             >
-              All orders <ChevronRight size={12} />
+              All orders <ChevronRight size={10} />
             </button>
           </div>
 
-          <div className="bg-card border border-border/40 rounded-3xl p-4 shadow-sm">
-            {/* 4 stat chips */}
-            <div className="grid grid-cols-4 gap-2">
-              {pipeline.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <button
-                    key={s.label}
-                    onClick={() => router.push("/orders")}
-                    className="flex flex-col items-center gap-1.5 active:scale-95 transition-all p-1 cursor-pointer"
-                  >
-                    <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}
-                    >
-                      <Icon size={18} className={s.color} />
-                    </div>
-                    <p className={`text-lg font-black leading-none ${s.color}`}>
-                      {s.value}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-wide font-extrabold text-muted-foreground text-center">
-                      {s.label}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-4 gap-2">
+            {pipeline.map((s) => (
+              <button
+                key={s.label}
+                onClick={() => router.push("/orders")}
+                className="bg-card border border-border/40 rounded-2xl overflow-hidden shadow-sm active:scale-95 cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center py-3 px-1 gap-1"
+              >
+                <p className={`text-2xl font-black leading-none tabular-nums ${s.color}`}>
+                  {s.value}
+                </p>
+                <p className="text-[8.5px] uppercase tracking-widest font-extrabold text-muted-foreground text-center leading-tight">
+                  {s.label}
+                </p>
+              </button>
+            ))}
           </div>
         </section>
 
@@ -241,8 +229,8 @@ export function OwnerDashboard() {
         <section className="space-y-2">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Inbox size={14} className="text-accent" />
-              <h2 className="text-xs font-black uppercase tracking-wider">Recent Activity</h2>
+              <Inbox size={15} className="text-accent" />
+              <h2 className="text-sm font-black uppercase tracking-wider">Recent Activity</h2>
             </div>
             
             <button
@@ -282,15 +270,15 @@ export function OwnerDashboard() {
 
                     {/* Text */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-extrabold text-foreground truncate leading-tight">
+                      <h3 className="text-[15px] font-extrabold text-foreground break-words whitespace-normal leading-tight">
                         {order.productName}
                       </h3>
                       <div className="flex items-center gap-1.5 mt-1.5 leading-none">
-                        <span className="text-xs font-mono text-muted-foreground/80">
+                        <span className="text-[11px] font-mono text-muted-foreground/80">
                           {order.id}
                         </span>
                         <span className="w-1 h-1 rounded-full bg-border inline-block shrink-0" />
-                        <span className="text-xs font-bold text-accent">
+                        <span className="text-[11px] font-bold text-accent">
                           Qty: {order.quantity}
                         </span>
                       </div>

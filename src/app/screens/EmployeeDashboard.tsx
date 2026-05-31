@@ -39,10 +39,10 @@ export function EmployeeDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.2s_ease-out]">
-        <header className="bg-primary text-primary-foreground px-4 pt-6 pb-5 sticky top-0 z-40 shadow-md">
+        <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-4 pt-6 pb-5 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
           <div className="max-w-lg mx-auto">
-            <div className="h-4 w-20 bg-primary-foreground/10 rounded mb-1.5 animate-pulse" />
-            <div className="h-6 w-32 bg-primary-foreground/20 rounded animate-pulse" />
+            <div className="h-4 w-20 bg-white/10 rounded mb-1.5 animate-pulse" />
+            <div className="h-6 w-32 bg-white/20 rounded animate-pulse" />
           </div>
         </header>
         <div className="max-w-lg mx-auto px-4 py-5 space-y-4">
@@ -64,16 +64,16 @@ export function EmployeeDashboard() {
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
       
       {/* Brand Header consistent with other pages */}
-      <header className="bg-primary text-primary-foreground px-4 pt-6 pb-5 sticky top-0 z-40 shadow-md">
+      <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-4 pt-6 pb-5 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
         <div className="max-w-lg mx-auto">
-          <p className="text-xs text-primary-foreground/75 font-extrabold uppercase tracking-widest leading-none mb-1.5">
+          <p className="text-[11px] text-neutral-400/80 font-extrabold uppercase tracking-widest leading-none mb-2">
             {greeting()},
           </p>
-          <h1 className="text-2xl font-black tracking-tight leading-none text-primary-foreground flex items-center gap-1.5">
+          <h1 className="text-3xl font-black tracking-tight leading-none text-white flex items-center gap-2">
             <span>{user?.name || "Employee"}</span>
-            <Sparkles size={18} className="text-accent animate-pulse" />
+            <Sparkles size={20} className="text-accent animate-pulse" />
           </h1>
-          <p className="text-xs uppercase tracking-widest font-extrabold text-[#DAB668] mt-2.5">
+          <p className="text-[11px] uppercase tracking-widest font-extrabold text-accent mt-3">
             Operator Workspace
           </p>
         </div>
@@ -84,8 +84,8 @@ export function EmployeeDashboard() {
         {/* Today's Overview Stats */}
         <section className="space-y-2">
           <div className="flex items-center gap-1.5 text-muted-foreground px-1">
-            <Activity size={14} className="text-accent" />
-            <h2 className="text-xs font-black uppercase tracking-wider">Today's Production</h2>
+            <Activity size={15} className="text-accent" />
+            <h2 className="text-sm font-black uppercase tracking-wider">Today's Production</h2>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -96,10 +96,10 @@ export function EmployeeDashboard() {
                   <Clock className="text-warning animate-pulse" size={18} />
                 </div>
                 <div>
-                  <p className="text-xl font-black text-foreground leading-none">
+                  <p className="text-2xl font-black text-foreground leading-none">
                     {pendingOrders.length}
                   </p>
-                  <p className="text-xs uppercase font-extrabold text-muted-foreground mt-1.5">
+                  <p className="text-[11px] uppercase font-extrabold text-muted-foreground mt-1.5">
                     Pending
                   </p>
                 </div>
@@ -113,10 +113,10 @@ export function EmployeeDashboard() {
                   <TrendingUp className="text-info" size={18} />
                 </div>
                 <div>
-                  <p className="text-xl font-black text-foreground leading-none">
+                  <p className="text-2xl font-black text-foreground leading-none">
                     {inProgressOrders.length}
                   </p>
-                  <p className="text-xs uppercase font-extrabold text-muted-foreground mt-1.5">
+                  <p className="text-[11px] uppercase font-extrabold text-muted-foreground mt-1.5">
                     Progress
                   </p>
                 </div>
@@ -134,7 +134,7 @@ export function EmployeeDashboard() {
                     <span>{completedToday.length} units</span>
                     {completedToday.length > 0 && <Sparkles size={15} className="text-accent animate-pulse" />}
                   </p>
-                  <p className="text-xs uppercase font-extrabold text-muted-foreground mt-1.5">
+                  <p className="text-[11px] uppercase font-extrabold text-muted-foreground mt-1.5">
                     Completed Today
                   </p>
                 </div>
@@ -146,8 +146,8 @@ export function EmployeeDashboard() {
         {/* Quick Actions grid */}
         <section className="space-y-2">
           <div className="flex items-center gap-1.5 text-muted-foreground px-1">
-            <Zap size={14} className="text-accent" />
-            <h2 className="text-xs font-black uppercase tracking-wider">Quick Actions</h2>
+            <Zap size={15} className="text-accent" />
+            <h2 className="text-sm font-black uppercase tracking-wider">Quick Actions</h2>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -223,7 +223,7 @@ export function EmployeeDashboard() {
                       <StatusChip status={order.status} className="text-[11px] px-2.5 py-1 shrink-0" />
                     </div>
 
-                    <h3 className="font-extrabold text-foreground text-base leading-tight truncate mt-1.5">
+                    <h3 className="font-extrabold text-foreground text-base leading-tight break-words whitespace-normal mt-1.5">
                       {order.productName}
                     </h3>
                     

@@ -361,7 +361,7 @@ export function PlaceOrderScreen() {
                     className="w-9 h-9 rounded-lg object-cover shrink-0 bg-secondary border border-border/30"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-extrabold text-xs text-foreground truncate leading-snug">
+                    <p className="font-extrabold text-xs text-foreground break-words whitespace-normal leading-snug">
                       {p.name}
                     </p>
                     <p className="text-[10px] font-mono text-muted-foreground">{p.id}</p>
@@ -382,7 +382,7 @@ export function PlaceOrderScreen() {
                 className="w-12 h-12 rounded-xl object-cover shrink-0 bg-secondary border border-border/20"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-extrabold text-foreground text-xs truncate">
+                <p className="font-extrabold text-foreground text-xs break-words whitespace-normal">
                   {item.product.name}
                 </p>
                 <p className="text-[10px] font-mono text-muted-foreground">
@@ -563,20 +563,20 @@ export function PlaceOrderScreen() {
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-12 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
 
       {/* Brand Header consistent with other pages */}
-      <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
+      <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-4 py-4 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-1.5 hover:bg-primary-foreground/10 active:scale-90 rounded-full transition-all cursor-pointer text-primary-foreground animate-[fadeIn_0.2s_ease-out]"
+            className="p-2 bg-white/10 hover:bg-white/15 text-white rounded-xl active:scale-90 transition-all cursor-pointer border border-white/15 shadow-sm"
             aria-label="Back"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} />
           </button>
           <div>
-            <p className="text-[9px] text-primary-foreground/60 font-extrabold uppercase tracking-widest leading-none">
+            <p className="text-[10px] text-neutral-400/80 font-extrabold uppercase tracking-widest leading-none">
               Customer Portal
             </p>
-            <h1 className="text-base font-bold tracking-tight text-primary-foreground mt-0.5">Place Order</h1>
+            <h1 className="text-lg font-black tracking-tight text-white mt-0.5">Place Order</h1>
           </div>
         </div>
       </header>

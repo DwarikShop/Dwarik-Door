@@ -141,9 +141,9 @@ export function EmployeeManagement() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background pb-20">
-        <header className="bg-primary text-primary-foreground px-6 py-6 sticky top-0 z-40 shadow-md">
+        <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-6 py-6 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
           <div className="max-w-lg mx-auto">
-            <div className="h-7 w-32 bg-primary-foreground/20 rounded" />
+            <div className="h-7 w-32 bg-white/20 rounded" />
           </div>
         </header>
         <div className="max-w-lg mx-auto px-4 py-5 space-y-3">
@@ -166,19 +166,19 @@ export function EmployeeManagement() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="bg-primary text-primary-foreground px-6 pt-8 pb-5 sticky top-0 z-40">
+      <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-6 pt-8 pb-5 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Team</h1>
-            <p className="text-xs text-primary-foreground/50 mt-0.5">
+            <h1 className="text-3xl font-black tracking-tight text-white">Team</h1>
+            <p className="text-[10px] text-neutral-400/80 mt-1">
               {employees.length} member{employees.length !== 1 ? "s" : ""}
             </p>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="p-2.5 bg-primary-foreground/10 rounded-full active:scale-95 transition-transform"
+            className="p-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl active:scale-95 transition-transform border border-white/15 shadow-sm"
           >
-            <UserPlus size={20} />
+            <UserPlus size={18} />
           </button>
         </div>
       </header>
@@ -199,7 +199,7 @@ export function EmployeeManagement() {
             {/* Owners */}
             {owners.length > 0 && (
               <section>
-                <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
                   Owners
                 </h2>
                 <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm divide-y divide-border">
@@ -251,7 +251,7 @@ export function EmployeeManagement() {
             {/* Employees */}
             {staff.length > 0 && (
               <section>
-                <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+                <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
                   Employees
                 </h2>
                 <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm divide-y divide-border">

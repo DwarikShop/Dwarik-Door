@@ -153,17 +153,17 @@ export function DemandAnalysis() {
   return (
     <div className="min-h-screen bg-background pb-8">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-40 shadow-md">
+      <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-4 py-4 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-primary-foreground/10 rounded-full transition-colors"
+            className="p-2 bg-white/10 hover:bg-white/15 text-white rounded-xl active:scale-90 transition-all cursor-pointer border border-white/15 shadow-sm"
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={16} />
           </button>
           <div>
-            <h1 className="text-xl font-bold leading-tight">Demand Analysis</h1>
-            <p className="text-xs text-primary-foreground/60">
+            <h1 className="text-2xl font-black leading-tight text-white">Demand Analysis</h1>
+            <p className="text-[10px] text-neutral-400/80 mt-0.5">
               Real-time · based on active orders
             </p>
           </div>

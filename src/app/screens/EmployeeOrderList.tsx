@@ -40,10 +40,10 @@ export function EmployeeOrderList() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.2s_ease-out]">
-        <header className="bg-primary text-primary-foreground sticky top-0 z-40 px-4 pt-6 pb-5 shadow-md">
+        <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white px-4 pt-6 pb-5 sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
           <div className="max-w-lg mx-auto">
-            <div className="h-4 w-20 bg-primary-foreground/10 rounded mb-1.5 animate-pulse" />
-            <div className="h-6 w-32 bg-primary-foreground/20 rounded animate-pulse" />
+            <div className="h-4 w-20 bg-white/10 rounded mb-1.5 animate-pulse" />
+            <div className="h-6 w-32 bg-white/20 rounded animate-pulse" />
           </div>
         </header>
         <div className="max-w-lg mx-auto px-4 py-5 space-y-3">
@@ -63,20 +63,20 @@ export function EmployeeOrderList() {
     <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#1A1210] pb-24 font-sans select-none animate-[fadeIn_0.25s_ease-out]">
       
       {/* Brand Header consistent with other pages */}
-      <header className="bg-primary text-primary-foreground sticky top-0 z-40 shadow-md">
-        <div className="max-w-lg mx-auto px-4 pt-5 pb-3">
+      <header className="bg-[#4E342E] dark:bg-[#2A1510] border-b border-[#DAB668]/40 text-white sticky top-0 z-40 shadow-[0_4px_25px_rgba(78,52,46,0.25)] dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)] transition-all duration-300">
+        <div className="max-w-lg mx-auto px-4 pt-5 pb-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs text-primary-foreground/75 font-extrabold uppercase tracking-widest leading-none">
+              <p className="text-[11px] text-neutral-400/80 font-extrabold uppercase tracking-widest leading-none">
                 Operator Portal
               </p>
-              <h1 className="text-2xl font-black tracking-tight mt-1">My Work log</h1>
+              <h1 className="text-2xl font-black tracking-tight mt-1.5 text-white">My Work log</h1>
             </div>
             
-            <div className="flex items-center gap-1.5 bg-primary-foreground/10 px-3 py-1 rounded-full border border-primary-foreground/5 shrink-0">
+            <div className="flex items-center gap-1.5 bg-[#DAB668]/15 dark:bg-[#DAB668]/15 px-3 py-1 rounded-xl border border-[#DAB668]/35 shrink-0">
               <ClipboardList size={13} className="text-accent animate-pulse mr-1" />
-              <span className="text-xs font-black uppercase tracking-wider">
-                {myOrders.length} Orders
+              <span className="text-xs font-black uppercase tracking-wider text-accent">
+                {myOrders.length} Jobs
               </span>
             </div>
           </div>
@@ -84,45 +84,45 @@ export function EmployeeOrderList() {
           {/* Search Box */}
           <div className="relative group">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-foreground/50 group-focus-within:text-primary-foreground transition-colors"
-              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50 group-focus-within:text-accent transition-colors"
+              size={15}
             />
             <input
               type="text"
               placeholder="Search assigned orders ID, name or specifications…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full h-10 pl-10 pr-8 rounded-xl bg-primary-foreground/10 border border-primary-foreground/5 text-primary-foreground placeholder:text-primary-foreground/45 focus:outline-none focus:border-accent focus:ring-1.5 focus:ring-accent/10 text-sm transition-all"
+              className="w-full h-10 pl-10 pr-9 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white/15 text-sm transition-all"
             />
             {isFetching && (
               <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                <div className="w-4 h-4 border border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
               </div>
             )}
             {!isFetching && searchInput && (
               <button
                 onClick={() => setSearchInput("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-primary-foreground/10 rounded-full text-primary-foreground/50 hover:text-primary-foreground transition-colors cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition-colors cursor-pointer"
                 aria-label="Clear search"
               >
-                <X size={13} />
+                <X size={12} />
               </button>
             )}
           </div>
         </div>
 
         {/* Dynamic Filter Pills inside header */}
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-none px-4 pb-2.5 max-w-lg mx-auto">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-3 max-w-lg mx-auto">
           {statusFilters.map((f) => {
             const isSelected = statusFilter === f.value;
             return (
               <button
                 key={f.value}
                 onClick={() => setStatusFilter(f.value)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
+                className={`flex-shrink-0 px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 border ${
                   isSelected
-                    ? "bg-accent text-accent-foreground shadow-sm font-extrabold"
-                    : "bg-primary-foreground/10 text-primary-foreground/75 hover:bg-primary-foreground/20 border border-transparent"
+                    ? "bg-accent text-accent-foreground border-accent shadow-sm font-extrabold"
+                    : "bg-white/10 text-neutral-300 hover:text-white border-white/15 hover:bg-white/15"
                 }`}
               >
                 {f.label}
@@ -201,7 +201,7 @@ export function EmployeeOrderList() {
                         <StatusChip status={order.status} className="text-[9px] px-1.5 py-0.5 shrink-0" />
                       </div>
 
-                      <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
+                      <h3 className="font-extrabold text-foreground text-[15px] leading-snug mt-1.5">
                         {order.productName}
                       </h3>
 
@@ -218,15 +218,15 @@ export function EmployeeOrderList() {
                       {/* Specs inline row with smaller font */}
                       <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-border/10">
                         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
-                          <span className="font-medium bg-secondary/40 px-1.5 py-0.2 rounded text-[10px]">
+                          <span className="font-medium bg-secondary/40 px-1.5 py-0.2 rounded text-[11px]">
                             {order.height} × {order.width} {order.unit}
                           </span>
                           <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                          <span className="font-bold text-accent">
+                          <span className="font-bold text-accent text-xs">
                             Qty: {order.quantity}
                           </span>
                           <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                          <span className="capitalize text-[10px]">
+                          <span className="capitalize text-[11px]">
                             {order.packaging || "plastic"} pack
                           </span>
                         </div>
