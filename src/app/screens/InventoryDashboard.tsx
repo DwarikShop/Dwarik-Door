@@ -125,6 +125,7 @@ const EMPTY_FORM = {
   name: "",
   category: "",
   image: "",
+  customImageUrl: "",
   price: "",
   stock: "",
   damaged: "0",
@@ -169,6 +170,11 @@ function ProductModal({
   };
 
   const uploadFile = async (file: File) => {
+    if (!form.id) {
+      toast.error("Please enter a Product ID before uploading an image");
+      return;
+    }
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
@@ -177,9 +183,10 @@ function ProductModal({
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("productId", form.id);
 
     try {
-      const res = await fetch("/api/upload", {
+      const res = await fetch("/api/products/upload-image", {
         method: "POST",
         body: formData,
       });
@@ -190,8 +197,8 @@ function ProductModal({
       }
 
       const data = await res.json();
-      onChange("image", data.url);
-      toast.success("Image uploaded successfully");
+      onChange("customImageUrl", data.imageUrl);
+      toast.success("Custom image uploaded successfully");
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error(error.message || "Failed to upload image");
@@ -221,7 +228,7 @@ function ProductModal({
   };
 
   const clearImage = () => {
-    onChange("image", "");
+    onChange("customImageUrl", "");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -326,16 +333,16 @@ function ProductModal({
               className="hidden"
             />
 
-            {form.image ? (
+            {form.customImageUrl || form.image ? (
               <div className="relative rounded-2xl overflow-hidden border border-border/80 group h-44 bg-secondary/20 shadow-inner flex items-center justify-center">
                 <img
-                  src={form.image}
+                  src={form.customImageUrl || form.image}
                   alt="Product preview"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 
                 {/* Overlay actions */}
-                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -564,6 +571,7 @@ export function InventoryDashboard() {
       name: p.name,
       category: p.category,
       image: p.image ?? "",
+      customImageUrl: p.customImageUrl ?? "",
       price: String(p.price),
       stock: String(p.stock),
       damaged: String(p.damaged),
@@ -618,6 +626,7 @@ export function InventoryDashboard() {
       name: form.name.trim(),
       category: form.category.trim(),
       image: form.image.trim(),
+      customImageUrl: form.customImageUrl.trim(),
       price: Number(form.price),
       stock: Number(form.stock) || 0,
       damaged: Number(form.damaged) || 0,
@@ -647,6 +656,7 @@ export function InventoryDashboard() {
       name: form.name.trim(),
       category: form.category.trim(),
       image: form.image.trim(),
+      customImageUrl: form.customImageUrl.trim(),
       price: Number(form.price),
       stock: Number(form.stock),
       damaged: Number(form.damaged),
@@ -1116,7 +1126,7 @@ export function InventoryDashboard() {
                               <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden border border-border/40 bg-secondary/30 relative shadow-sm">
                                 <img
                                   src={
-                                    product.image ||
+                                    product.customImageUrl || product.image ||
                                     "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"
                                   }
                                   alt={product.name}

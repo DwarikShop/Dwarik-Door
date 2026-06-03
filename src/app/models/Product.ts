@@ -39,6 +39,10 @@ const ProductSchema = new Schema<IProduct>(
       required: false,
       default: "",
     },
+    customImageUrl: {
+      type: String,
+      default: null,
+    },
     stock: {
       type: Number,
       required: true,

@@ -10,6 +10,7 @@ export interface AddProductInput {
   name: string;
   category: string;
   image: string;
+  customImageUrl?: string | null;
   price: number;
   stock: number;
   damaged: number;
@@ -20,6 +21,7 @@ export interface UpdateProductInput {
   name?: string;
   category?: string;
   image?: string;
+  customImageUrl?: string | null;
   price?: number;
   stock?: number;
   damaged?: number;

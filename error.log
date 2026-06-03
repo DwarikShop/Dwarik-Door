@@ -1,0 +1,10 @@
+2026-06-03T13:27:21.028Z ValidationError: Order validation failed: productImage: Path `productImage` is required.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-03T13:31:05.816Z ValidationError: Order validation failed: productImage: Path `productImage` is required.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   try {
     await connectDB();
     const body = await request.json();
-    const { name, category, image, price, stock, damaged } = body;
+    const { name, category, image, customImageUrl, price, stock, damaged } = body;
     let { id } = body;
 
     if (!name || !category || price === undefined || price === null) {
@@ -79,6 +79,7 @@ export async function POST(request: Request) {
       name: name.trim(),
       category: category.trim(),
       image: image?.trim() || "",
+      customImageUrl: customImageUrl?.trim() || null,
       price: Number(price),
       stock: Number(stock) || 0,
       reserved: 0,

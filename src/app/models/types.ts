@@ -55,6 +55,7 @@ export interface TProduct {
   name: string;
   category: string;
   image: string;
+  customImageUrl?: string | null;
   stock: number;
   reserved: number;
   damaged: number;

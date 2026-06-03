@@ -44,6 +44,8 @@ interface OrderItem {
   product: ReturnType<typeof useProducts>["products"][0] | null;
   height: string;
   width: string;
+  heightFraction: string;
+  widthFraction: string;
   unit: "inch" | "mm";
   packaging: "plastic" | "carton";
   freeSize: boolean;
@@ -56,6 +58,8 @@ const emptyItem = (): OrderItem => ({
   product: null,
   height: "",
   width: "",
+  heightFraction: "",
+  widthFraction: "",
   unit: "inch",
   packaging: "plastic",
   freeSize: false,
@@ -201,6 +205,12 @@ export function PlaceOrderScreen() {
 
       // Place sequentially
       for (const item of items) {
+        const parseFrac = (f: string) => {
+          if (!f) return 0;
+          const [n, d] = f.split("/");
+          return parseInt(n) / parseInt(d);
+        };
+
         const r = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -208,9 +218,9 @@ export function PlaceOrderScreen() {
           body: JSON.stringify({
             productId: item.product!.id,
             productName: item.product!.name,
-            productImage: item.product!.image,
-            height: item.freeSize ? 0 : parseFloat(item.height),
-            width: item.freeSize ? 0 : parseFloat(item.width),
+            productImage: item.product!.customImageUrl || item.product!.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop",
+            height: item.freeSize ? 0 : parseFloat(item.height) + (item.unit === "inch" ? parseFrac(item.heightFraction) : 0),
+            width: item.freeSize ? 0 : parseFloat(item.width) + (item.unit === "inch" ? parseFrac(item.widthFraction) : 0),
             unit: item.unit,
             packaging: item.packaging,
             freeSize: item.freeSize,
@@ -355,11 +365,13 @@ export function PlaceOrderScreen() {
                   }}
                   className="w-full text-left flex gap-3 items-center p-3 hover:bg-secondary/40 border-b border-border/10 last:border-b-0 transition-colors cursor-pointer"
                 >
-                  <img
-                    src={p.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
-                    alt={p.name}
-                    className="w-9 h-9 rounded-lg object-cover shrink-0 bg-secondary border border-border/30"
-                  />
+                  <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-secondary border border-border/30">
+                    <img
+                      src={p.customImageUrl || p.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
+                      alt={p.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-extrabold text-xs text-foreground break-words whitespace-normal leading-snug">
                       {p.name}
@@ -376,11 +388,13 @@ export function PlaceOrderScreen() {
         {item.product && (
           <div className="p-3.5 border border-accent/15 bg-accent/5 rounded-2xl animate-[fadeIn_0.3s_ease-out]">
             <div className="flex gap-3 items-center">
-              <img
-                src={item.product.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
-                alt={item.product.name}
-                className="w-12 h-12 rounded-xl object-cover shrink-0 bg-secondary border border-border/20"
-              />
+              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-secondary border border-border/20">
+                <img
+                  src={item.product.customImageUrl || item.product.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop"}
+                  alt={item.product.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-extrabold text-foreground text-xs break-words whitespace-normal">
                   {item.product.name}
@@ -446,31 +460,67 @@ export function PlaceOrderScreen() {
                       <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                         Height ({item.unit})
                       </label>
-                      <Input
-                        type="number"
-                        placeholder="Height"
-                        value={item.height}
-                        onChange={(e) =>
-                          onItemChange({ height: e.target.value })
-                        }
-                        className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20"
-                        required={!item.freeSize}
-                      />
+                      <div className="flex gap-1.5">
+                        <Input
+                          type="number"
+                          placeholder="Height"
+                          value={item.height}
+                          onChange={(e) =>
+                            onItemChange({ height: e.target.value })
+                          }
+                          className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1"
+                          required={!item.freeSize}
+                        />
+                        {item.unit === "inch" && (
+                          <select
+                            value={item.heightFraction || ""}
+                            onChange={(e) => onItemChange({ heightFraction: e.target.value })}
+                            className="h-10 w-[72px] rounded-xl bg-secondary/35 border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 text-xs px-2 text-foreground font-medium"
+                          >
+                            <option value="">-</option>
+                            <option value="1/8">1/8</option>
+                            <option value="2/8">2/8</option>
+                            <option value="3/8">3/8</option>
+                            <option value="4/8">4/8</option>
+                            <option value="5/8">5/8</option>
+                            <option value="6/8">6/8</option>
+                            <option value="7/8">7/8</option>
+                          </select>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                         Width ({item.unit})
                       </label>
-                      <Input
-                        type="number"
-                        placeholder="Width"
-                        value={item.width}
-                        onChange={(e) =>
-                          onItemChange({ width: e.target.value })
-                        }
-                        className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20"
-                        required={!item.freeSize}
-                      />
+                      <div className="flex gap-1.5">
+                        <Input
+                          type="number"
+                          placeholder="Width"
+                          value={item.width}
+                          onChange={(e) =>
+                            onItemChange({ width: e.target.value })
+                          }
+                          className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1"
+                          required={!item.freeSize}
+                        />
+                        {item.unit === "inch" && (
+                          <select
+                            value={item.widthFraction || ""}
+                            onChange={(e) => onItemChange({ widthFraction: e.target.value })}
+                            className="h-10 w-[72px] rounded-xl bg-secondary/35 border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 text-xs px-2 text-foreground font-medium"
+                          >
+                            <option value="">-</option>
+                            <option value="1/8">1/8</option>
+                            <option value="2/8">2/8</option>
+                            <option value="3/8">3/8</option>
+                            <option value="4/8">4/8</option>
+                            <option value="5/8">5/8</option>
+                            <option value="6/8">6/8</option>
+                            <option value="7/8">7/8</option>
+                          </select>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

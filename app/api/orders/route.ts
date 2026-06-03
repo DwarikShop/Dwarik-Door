@@ -244,8 +244,11 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(order, { status: 201 });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[POST /api/orders]", err);
+    try {
+      require('fs').appendFileSync('error.log', new Date().toISOString() + ' ' + (err.stack || err.toString()) + '\n');
+    } catch(e) {}
     return NextResponse.json(
       { error: "Failed to create order" },
       { status: 500 },
