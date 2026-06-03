@@ -29,6 +29,8 @@ import {
   Box,
   ChevronsDownUp,
   ChevronsUpDown,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -154,6 +156,77 @@ function ProductModal({
   onDelete,
   existingCategories,
 }: ProductModalProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [showUrlField, setShowUrlField] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await uploadFile(files[0]);
+    }
+  };
+
+  const uploadFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const data = await res.json();
+      onChange("image", data.url);
+      toast.success("Image uploaded successfully");
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      await uploadFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const clearImage = () => {
+    onChange("image", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
       <div className="bg-card rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border/80 max-h-[90vh] overflow-y-auto animate-[slideUp_0.3s_ease-out]">
@@ -239,17 +312,115 @@ function ProductModal({
             )}
           </div>
 
-          {/* Image URL */}
-          <div className="space-y-1">
+          {/* Image Uploader */}
+          <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Image URL
+              Product Image *
             </label>
-            <Input
-              placeholder="https://images.unsplash.com/..."
-              value={form.image}
-              onChange={(e) => onChange("image", e.target.value)}
-              className="h-10 rounded-xl bg-secondary/35 border-border/80 focus-visible:ring-accent/20"
+            
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
             />
+
+            {form.image ? (
+              <div className="relative rounded-2xl overflow-hidden border border-border/80 group h-44 bg-secondary/20 shadow-inner flex items-center justify-center">
+                <img
+                  src={form.image}
+                  alt="Product preview"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                
+                {/* Overlay actions */}
+                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-full transition-all active:scale-90 cursor-pointer border border-white/10"
+                    title="Change Image"
+                  >
+                    <Upload size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="p-2.5 bg-destructive/80 hover:bg-destructive text-white rounded-full transition-all active:scale-90 cursor-pointer shadow-md"
+                    title="Remove Image"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+                
+                {/* Corner indicator */}
+                <div className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[9px] font-black uppercase text-accent tracking-widest leading-none">
+                  Preview
+                </div>
+              </div>
+            ) : (
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2 group min-h-[140px] ${
+                  dragActive
+                    ? "border-accent bg-accent/5 scale-[1.01]"
+                    : "border-border/80 hover:border-accent/40 bg-secondary/15 hover:bg-secondary/25"
+                }`}
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="animate-spin h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <p className="text-xs font-bold text-muted-foreground animate-pulse">Uploading image...</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-3 rounded-2xl bg-secondary/80 text-muted-foreground group-hover:text-accent group-hover:bg-accent/10 transition-all duration-300">
+                      <Upload size={20} className="transition-transform group-hover:-translate-y-0.5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-extrabold text-foreground group-hover:text-accent transition-colors">
+                        Click or drag image to upload
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Supports PNG, JPG, JPEG, WEBP
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* URL Toggle Link */}
+            <div className="pt-1.5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowUrlField(!showUrlField)}
+                className="text-[10px] font-bold text-muted-foreground hover:text-accent transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span>{showUrlField ? "Hide" : "Or use custom image URL"}</span>
+                <ChevronDown size={11} className={`transition-transform duration-200 ${showUrlField ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+
+            {/* Collapsible URL Input Field */}
+            <div className={`transition-all duration-300 overflow-hidden ${
+              showUrlField ? "max-h-[80px] opacity-100 mt-2" : "max-h-0 opacity-0 pointer-events-none mt-0"
+            }`}>
+              <Input
+                placeholder="https://images.unsplash.com/..."
+                value={form.image}
+                onChange={(e) => onChange("image", e.target.value)}
+                className="h-10 rounded-xl bg-secondary/35 border-border/80 focus-visible:ring-accent/20 text-xs"
+              />
+            </div>
           </div>
 
           {/* Price & Stock Grid */}

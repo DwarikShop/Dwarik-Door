@@ -26,6 +26,9 @@ export async function POST(request: Request) {
       );
     }
 
+    const cleanedPhone = phone.replace(/\D/g, "");
+    const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : cleanedPhone;
+
     let found: {
       id: string;
       name: string;
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
     try {
       await connectDB();
       // Find by phone first — avoids timing attacks from findOne({ phone, password })
-      const byPhone = await Employee.findOne({ phone }).lean();
+      const byPhone = await Employee.findOne({ phone: finalPhone }).lean();
       if (byPhone && byPhone.password === password) {
         found = {
           id: byPhone.id,

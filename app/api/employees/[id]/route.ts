@@ -65,8 +65,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     // Check phone uniqueness if phone is being changed
     if (body.phone) {
+      const cleanedPhone = body.phone.replace(/\D/g, "");
+      const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : cleanedPhone;
+      body.phone = finalPhone;
+
       const conflict = await Employee.findOne({
-        phone: body.phone,
+        phone: finalPhone,
         id: { $ne: id },
       });
       if (conflict) {

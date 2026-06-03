@@ -55,8 +55,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const cleanedPhone = phone.replace(/\D/g, "");
+    const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : cleanedPhone;
+
     // Check phone uniqueness
-    const existing = await Employee.findOne({ phone });
+    const existing = await Employee.findOne({ phone: finalPhone });
     if (existing) {
       return NextResponse.json(
         { error: "An employee with this phone number already exists" },
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
     const employee = await Employee.create({
       id,
       name: name.trim(),
-      phone: phone.trim(),
+      phone: finalPhone,
       password,
       role: role || "employee",
     });

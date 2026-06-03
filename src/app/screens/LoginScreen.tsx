@@ -18,14 +18,17 @@ export function LoginScreen() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!phone || !password) {
-      toast.error("Please enter phone and password");
+    const cleanedPhone = phone.replace(/\D/g, "");
+    const finalPhone = cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : cleanedPhone;
+
+    if (!finalPhone || !password) {
+      toast.error("Please enter a valid phone number and password");
       return;
     }
 
     setIsLoading(true);
     try {
-      const loggedInUser = await login(phone, password);
+      const loggedInUser = await login(finalPhone, password);
 
       if (loggedInUser) {
         toast.success("Welcome back! Login successful.");

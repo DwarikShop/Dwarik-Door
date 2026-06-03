@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const { name, category, image, price, stock, damaged } = body;
     let { id } = body;
 
-    if (!name || !category || !price) {
+    if (!name || !category || price === undefined || price === null) {
       return NextResponse.json(
         { error: "name, category and price are required" },
         { status: 400 },
