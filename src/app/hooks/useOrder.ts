@@ -121,7 +121,11 @@ export function useOrder(id: string | undefined): UseOrderResult {
           throw new Error(err.error || "Failed to update status");
         }
 
-        const updated: TOrder = await res.json();
+        const updated: any = await res.json();
+        if (updated.deleted) {
+          setOrder(null);
+          return true;
+        }
         setOrder(normaliseOrder(updated));
         return true;
       } catch (err) {

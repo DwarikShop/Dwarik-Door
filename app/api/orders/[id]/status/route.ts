@@ -32,7 +32,7 @@
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import { Order, Product, InventoryLog, StatusHistory } from "@/app/models";
+import { Order, Product, InventoryLog, StatusHistory, OrderGroup } from "@/app/models";
 import type { OrderStatus } from "@/app/models/types";
 import { verifyTokenSafe, AUTH_COOKIE } from "@/lib/jwt";
 import { cookies } from "next/headers";
@@ -207,6 +207,21 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     // ── Update order status ───────────────────────────────────────────────────
+    if (toStatus === "cancelled") {
+      await Order.findOneAndDelete({ id });
+      await StatusHistory.deleteMany({ orderId: id });
+      
+      // Update OrderGroup if applicable
+      if (order.groupId) {
+        await OrderGroup.findOneAndUpdate(
+          { id: order.groupId },
+          { $inc: { totalItems: -1 } }
+        );
+      }
+      
+      return NextResponse.json({ success: true, deleted: true, id });
+    }
+
     order.status = toStatus;
     await order.save();
 
