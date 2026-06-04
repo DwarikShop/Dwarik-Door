@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BottomNav } from "../components/BottomNav";
 import { useProducts } from "../hooks/useProducts";
+import { useOrders } from "../hooks/useOrders";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -529,6 +530,8 @@ export function InventoryDashboard() {
     checkIdExists,
   } = useProducts();
 
+  const { orders } = useOrders({ role: isOwner ? "owner" : "employee" });
+
   const idCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -740,6 +743,8 @@ export function InventoryDashboard() {
     ).length,
     outOfStock: products.filter((p) => p.stock - p.reserved <= 0).length,
     totalDamaged: products.reduce((acc, p) => acc + p.damaged, 0),
+    backorders: orders.filter((o) => o.status === "backordered").length,
+    shortageUnits: orders.filter((o) => o.status === "backordered").reduce((acc, o) => acc + (o.shortageQuantity || 0), 0),
   };
 
   const filteredProducts = products.filter((product) => {
@@ -846,7 +851,7 @@ export function InventoryDashboard() {
 
       {/* Dense Stats Overview */}
       <div className="max-w-lg mx-auto px-4 pt-4 animate-[fadeIn_0.3s_ease-out]">
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-4 gap-2">
           {[
             {
               label: "Low",
@@ -871,6 +876,14 @@ export function InventoryDashboard() {
               color: "text-orange-500",
               bg: "bg-orange-500/8",
               border: "border-orange-500/15",
+            },
+            {
+              label: "Backordered",
+              value: stats.shortageUnits || 0,
+              icon: Layers,
+              color: "text-destructive",
+              bg: "bg-destructive/8",
+              border: "border-destructive/20",
             },
           ].map((s) => {
             const Icon = s.icon;

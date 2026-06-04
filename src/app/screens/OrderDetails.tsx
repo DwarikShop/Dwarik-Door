@@ -98,10 +98,12 @@ export function OrderDetails() {
     );
   }
 
-  const canCancel = order.status === "placed";
+  const canCancel = ["placed", "backordered"].includes(order.status);
+  const canConvert = order.status === "draft";
 
   const timeline = [
-    { status: "placed", label: "Placed", active: true },
+    { status: "draft", label: "Draft", active: order.status === "draft", hidden: order.status !== "draft" },
+    { status: "placed", label: "Placed", active: order.status !== "draft" },
     {
       status: "in_progress",
       label: "In Progress",
@@ -126,6 +128,22 @@ export function OrderDetails() {
       router.back();
     } else {
       toast.error("Failed to cancel order. Please try again.");
+    }
+  };
+
+  const handleConvertToOrder = async () => {
+    try {
+      const res = await fetch(`/api/orders/${order.id}/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ changedBy: user?.id || "owner" }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Draft converted to order successfully!");
+      // reload the page to refresh order data
+      window.location.reload();
+    } catch {
+      toast.error("Failed to convert draft to order.");
     }
   };
 
@@ -642,14 +660,13 @@ export function OrderDetails() {
           </div>
 
           <div className="relative pl-1">
-            {timeline.map((step, index) => {
+            {timeline.filter(t => !t.hidden).map((step, index) => {
               const isActive = step.active;
               const isCurrent = step.status === order.status;
-
               return (
                 <div key={step.status} className="flex gap-4 relative pb-6 last:pb-0">
                   {/* Timeline path line */}
-                  {index < timeline.length - 1 && (
+                  {index < timeline.filter(t => !t.hidden).length - 1 && (
                     <div
                       className={`absolute left-3.5 top-7 w-0.5 h-[calc(100%-14px)] transition-colors duration-300 ${isActive ? "bg-accent" : "bg-border"
                         }`}
@@ -732,6 +749,17 @@ export function OrderDetails() {
         </Card>
 
         {/* Action Controls */}
+        {canConvert && (
+          <Button
+            className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm shadow-accent/10 mb-3 cursor-pointer"
+            disabled={isUpdating}
+            onClick={handleConvertToOrder}
+          >
+            <Check size={15} className="mr-1.5" />
+            {isUpdating ? "Converting…" : "Convert To Order"}
+          </Button>
+        )}
+        
         {canCancel && (
           <Button
             variant="destructive"

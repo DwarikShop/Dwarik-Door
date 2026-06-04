@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card } from "../components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components";
 import { useProducts } from "../hooks/useProducts";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Search, AlertCircle, X, Plus, Layers, Sparkles, Check, ClipboardList, Info, HelpCircle } from "lucide-react";
+import { ArrowLeft, Search, AlertCircle, X, Plus, Layers, Sparkles, Check, ClipboardList, Info, HelpCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Toggle helper ─────────────────────────────────────────────────────────────
@@ -97,6 +98,55 @@ export function PlaceOrderScreen() {
   const [groupSearches, setGroupSearches] = useState<string[]>([""]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Edit draft logic
+  const searchParams = useSearchParams();
+  const editDraftId = searchParams.get("editDraftId");
+  const [isDraftLoading, setIsDraftLoading] = useState(!!editDraftId);
+
+  useEffect(() => {
+    if (editDraftId && products.length > 0) {
+      fetch(`/api/orders/${editDraftId}`, { credentials: "include" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            toast.error(data.error);
+            setIsDraftLoading(false);
+            return;
+          }
+          setCustomerName(data.customerName || "");
+          setCustomerPhone(data.customerPhone || "");
+          setIsGroupOrder(data.orderType === "group");
+
+          const prod = products.find((p) => p.id === data.productId) || null;
+          const item: OrderItem = {
+            product: prod,
+            height: Math.floor(data.height || 0).toString(),
+            width: Math.floor(data.width || 0).toString(),
+            heightFraction: "0",
+            widthFraction: "0",
+            unit: data.unit || "inch",
+            packaging: data.packaging || "plastic",
+            freeSize: data.freeSize || false,
+            quantity: (data.quantity || 1).toString(),
+            customization: !!data.customization,
+            customizationText: data.customization || "",
+          };
+
+          if (data.orderType === "group") {
+            setGroupItems([item]); // Assuming draft only saved one item initially, or we just load it into the first one
+          } else {
+            setSingleItem(item);
+          }
+          setIsDraftLoading(false);
+        })
+        .catch(() => {
+          toast.error("Failed to load draft");
+          setIsDraftLoading(false);
+        });
+    }
+  }, [editDraftId, products]);
 
   // Dropdown lazy loading indices
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
@@ -140,7 +190,7 @@ export function PlaceOrderScreen() {
   };
 
   // Submit flow - placed sequentially to prevent ID conflicts
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, status: "draft" | "placed" = "placed") => {
     e.preventDefault();
 
     if (!customerName.trim()) {
@@ -158,22 +208,19 @@ export function PlaceOrderScreen() {
 
     const items = isGroupOrder ? groupItems : [singleItem];
 
-    // Validate all items
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const label = isGroupOrder ? `Item ${i + 1}` : "Order";
-      if (!item.product) {
-        toast.error(`${label}: Please select a product`);
-        return;
-      }
-      if (!item.freeSize && (!item.height || !item.width)) {
-        toast.error(`${label}: Enter dimensions or enable Free Size`);
-        return;
-      }
-      const stockErr = getStockError(item);
-      if (stockErr) {
-        toast.error(`${label}: ${stockErr}`);
-        return;
+    // Validate all items for placed orders
+    if (status !== "draft") {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const label = isGroupOrder ? `Item ${i + 1}` : "Order";
+        if (!item.product) {
+          toast.error(`${label}: Please select a product`);
+          return;
+        }
+        if (!item.freeSize && (!item.height || !item.width)) {
+          toast.error(`${label}: Enter dimensions or enable Free Size`);
+          return;
+        }
       }
     }
 
@@ -211,26 +258,27 @@ export function PlaceOrderScreen() {
           return parseInt(n) / parseInt(d);
         };
 
-        const r = await fetch("/api/orders", {
-          method: "POST",
+        const r = await fetch(editDraftId ? `/api/orders/${editDraftId}` : "/api/orders", {
+          method: editDraftId ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            productId: item.product!.id,
-            productName: item.product!.name,
-            productImage: item.product!.customImageUrl || item.product!.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop",
-            height: item.freeSize ? 0 : parseFloat(item.height) + (item.unit === "inch" ? parseFrac(item.heightFraction) : 0),
-            width: item.freeSize ? 0 : parseFloat(item.width) + (item.unit === "inch" ? parseFrac(item.widthFraction) : 0),
+            productId: item.product?.id || "UNSELECTED",
+            productName: item.product?.name || "Draft Unspecified Product",
+            productImage: item.product?.customImageUrl || item.product?.image || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=600&fit=crop",
+            height: item.freeSize ? 0 : (parseFloat(item.height) || 0) + (item.unit === "inch" ? parseFrac(item.heightFraction) : 0),
+            width: item.freeSize ? 0 : (parseFloat(item.width) || 0) + (item.unit === "inch" ? parseFrac(item.widthFraction) : 0),
             unit: item.unit,
             packaging: item.packaging,
             freeSize: item.freeSize,
             customization: item.customization ? item.customizationText : undefined,
-            quantity: parseInt(item.quantity),
+            quantity: parseInt(item.quantity) || 1,
             customerName,
             customerPhone,
             groupId,
             orderType: isGroupOrder ? "group" : "single",
             changedBy: user?.id || "owner",
+            status,
           }),
         });
         if (r.status === 401) {
@@ -776,29 +824,95 @@ export function PlaceOrderScreen() {
           )}
 
           {/* Submit Action Block */}
-          <div className="flex gap-3 pt-4 border-t border-border/30">
+          <div className="flex flex-col gap-2 pt-4 border-t border-border/30">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer"
+                onClick={(e) => handleSubmit(e, "draft")}
+                disabled={isSubmitting || !!phoneError}
+              >
+                Save Draft
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15"
+                disabled={isSubmitting || !!phoneError}
+                onClick={(e) => handleSubmit(e, "placed")}
+              >
+                {isSubmitting
+                  ? "Processing…"
+                  : isGroupOrder
+                    ? `Place Group (${groupItems.length})`
+                    : "Place Order"}
+              </Button>
+            </div>
+            {editDraftId && (
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer mt-2"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 size={16} className="mr-2" />
+                Delete Draft
+              </Button>
+            )}
+          </div>
+        </form>
+      </main>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card border border-border/50 p-6 rounded-3xl shadow-xl">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
+              <Trash2 className="text-destructive" size={24} />
+              Delete Draft
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">
+              Are you sure you want to delete this draft? This action cannot be undone and all saved data will be lost.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 justify-end mt-4">
             <Button
               type="button"
               variant="outline"
-              className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer"
-              onClick={() => router.back()}
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="rounded-xl h-10 font-bold"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
-              type="submit"
-              className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15"
-              disabled={isSubmitting || !!phoneError}
+              type="button"
+              variant="destructive"
+              className="rounded-xl h-10 font-bold bg-destructive/90 hover:bg-destructive"
+              disabled={isSubmitting}
+              onClick={async () => {
+                setIsSubmitting(true);
+                try {
+                  const r = await fetch(`/api/orders/${editDraftId}`, { method: "DELETE" });
+                  if (r.ok) {
+                    toast.success("Draft deleted");
+                    router.push("/orders");
+                  } else {
+                    toast.error("Failed to delete draft");
+                  }
+                } catch (err) {
+                  toast.error("An error occurred");
+                } finally {
+                  setIsSubmitting(false);
+                  setIsDeleteDialogOpen(false);
+                }
+              }}
             >
-              {isSubmitting
-                ? "Placing…"
-                : isGroupOrder
-                  ? `Place Group (${groupItems.length})`
-                  : "Place Order"}
+              {isSubmitting ? "Deleting..." : "Delete Permanently"}
             </Button>
           </div>
-        </form>
-      </main>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

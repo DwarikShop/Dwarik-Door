@@ -74,7 +74,9 @@ export function OrderManagement() {
 
   const statusFilters = [
     { value: "all", label: "All" },
+    { value: "draft", label: "Draft" },
     { value: "placed", label: "Placed" },
+    { value: "backordered", label: "Backordered" },
     { value: "in_progress", label: "Progress" },
     { value: "done", label: "Done" },
     { value: "shipped", label: "Shipped" },
@@ -206,7 +208,7 @@ export function OrderManagement() {
               return (
                 <button
                   key={order.id}
-                  onClick={() => router.push(`/orders/${order.id}`)}
+                  onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                   className="w-full text-left bg-card border border-border/40 hover:border-border/80 rounded-xl overflow-hidden shadow-sm active:scale-[0.99] transition-all flex items-center gap-3 p-2.5 cursor-pointer relative"
                 >
                   {/* Small product thumbnail */}
@@ -335,7 +337,7 @@ export function OrderManagement() {
                     {groupOrders.map((order) => (
                       <button
                         key={order.id}
-                        onClick={() => router.push(`/orders/${order.id}`)}
+                        onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                         className="w-full text-left p-2.5 pl-5 flex items-center gap-3 active:bg-secondary/40 transition-all cursor-pointer"
                       >
                         <img

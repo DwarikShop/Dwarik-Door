@@ -250,11 +250,26 @@ export function EmployeeOrderWorkflow() {
           </div>
 
           <div className="space-y-3">
-            {order.status === "placed" && (
+            {(order.status === "placed" || order.status === "backordered") && (
               <>
+                {order.status === "backordered" && (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4 mb-3 text-center animate-[fadeIn_0.3s_ease-out]">
+                    <p className="text-xs font-black text-destructive uppercase tracking-wider mb-1">
+                      Inventory Shortage
+                    </p>
+                    <p className="text-sm font-bold text-foreground">
+                      Waiting For Inventory
+                    </p>
+                    {order.shortageQuantity! > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Need {order.shortageQuantity} More Units
+                      </p>
+                    )}
+                  </div>
+                )}
                 <Button
                   className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-accent hover:bg-accent/90 text-accent-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-accent/15 cursor-pointer"
-                  disabled={isUpdating}
+                  disabled={isUpdating || order.status === "backordered"}
                   onClick={handleStartWork}
                 >
                   <Play size={14} />

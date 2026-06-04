@@ -123,6 +123,7 @@ export async function POST(request: Request) {
       groupId,
       orderType,
       changedBy,
+      status: requestedStatus,
     } = body;
 
     // Phone validation — exactly 10 digits
@@ -133,11 +134,13 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!productId || !quantity) {
-      return NextResponse.json(
-        { error: "productId and quantity are required" },
-        { status: 400 },
-      );
+    if (requestedStatus !== "draft") {
+      if (!productId || !quantity) {
+        return NextResponse.json(
+          { error: "productId and quantity are required" },
+          { status: 400 },
+        );
+      }
     }
 
     if (
@@ -151,69 +154,81 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!customerName?.trim()) {
-      return NextResponse.json(
-        { error: "customerName is required" },
-        { status: 400 },
-      );
+    if (requestedStatus !== "draft") {
+      if (!customerName?.trim()) {
+        return NextResponse.json(
+          { error: "customerName is required" },
+          { status: 400 },
+        );
+      }
+
+      if (!customerPhone?.trim()) {
+        return NextResponse.json(
+          { error: "customerPhone is required" },
+          { status: 400 },
+        );
+      }
+
+      // Dimensions required unless freeSize is true
+      if (!freeSize && (!height || !width)) {
+        return NextResponse.json(
+          { error: "Height and width are required (or enable Free Size)" },
+          { status: 400 },
+        );
+      }
     }
 
-    if (!customerPhone?.trim()) {
-      return NextResponse.json(
-        { error: "customerPhone is required" },
-        { status: 400 },
-      );
+    let count = await Order.countDocuments();
+    let orderId = "";
+    while (true) {
+      orderId = `ORD-${String(count + 1).padStart(3, "0")}`;
+      const exists = await Order.exists({ id: orderId });
+      if (!exists) break;
+      count++;
     }
 
-    // Dimensions required unless freeSize is true
-    if (!freeSize && (!height || !width)) {
-      return NextResponse.json(
-        { error: "Height and width are required (or enable Free Size)" },
-        { status: 400 },
-      );
+    // ── Inventory check and Draft logic ────────────
+    let product = null;
+    if (productId) {
+      product = await Product.findOne({ id: productId });
+      if (!product && requestedStatus !== "draft") {
+        return NextResponse.json(
+          { error: `Product "${productId}" not found in inventory` },
+          { status: 404 },
+        );
+      }
     }
 
-    const count = await Order.countDocuments();
-    const orderId = `ORD-${String(count + 1).padStart(3, "0")}`;
+    const availableBeforeReservation = product ? (product.stock - product.reserved) : 0;
+    let finalStatus = requestedStatus === "draft" ? "draft" : "placed";
+    let isInventoryShortage = false;
+    let shortageQuantity = 0;
+    let reservedQuantity = 0;
 
-    // ── Hard stock check — block if quantity exceeds available ────────────
-    const product = await Product.findOne({ id: productId });
-    if (!product) {
-      return NextResponse.json(
-        { error: `Product "${productId}" not found in inventory` },
-        { status: 404 },
-      );
-    }
-
-    const availableStock = product.stock - product.reserved;
-    if (quantity > availableStock) {
-      return NextResponse.json(
-        {
-          error:
-            availableStock <= 0
-              ? `"${product.name}" is out of stock. No units available.`
-              : `Insufficient stock for "${product.name}". Only ${availableStock} unit${availableStock !== 1 ? "s" : ""} available. Requested: ${quantity}.`,
-        },
-        { status: 422 },
-      );
-    }
-
-    // Reserve stock
-    if (product) {
-      const previousReserved = product.reserved;
-      product.reserved += quantity;
-      await product.save();
-      await InventoryLog.create({
-        productId,
-        productName: product.name,
-        field: "reserved",
-        previousValue: previousReserved,
-        newValue: product.reserved,
-        delta: quantity,
-        reason: "order_placed",
-        orderId,
-        changedBy: changedBy || "system",
-      });
+    if (finalStatus !== "draft") {
+      if (availableBeforeReservation < quantity) {
+        finalStatus = "backordered";
+        isInventoryShortage = true;
+        shortageQuantity = Math.max(0, quantity - availableBeforeReservation);
+      }
+      reservedQuantity = quantity;
+      
+      if (product) {
+        const previousReserved = product.reserved;
+        product.reserved += quantity;
+        await product.save();
+        await InventoryLog.create({
+          productId,
+          productName: product.name,
+          field: "reserved",
+          previousValue: previousReserved,
+          newValue: product.reserved,
+          delta: quantity,
+          reason: "order_placed",
+          orderId,
+          changedBy: changedBy || "system",
+        });
+      }
     }
 
     const order = await Order.create({
@@ -228,19 +243,27 @@ export async function POST(request: Request) {
       freeSize: !!freeSize,
       customization,
       quantity,
-      status: "placed",
+      status: finalStatus,
       customerName,
       customerPhone,
       groupId: groupId || undefined,
       orderType: orderType || "single",
+      isInventoryShortage,
+      shortageQuantity,
+      availableAtOrderTime: availableBeforeReservation,
+      reservedQuantity,
     });
+
+    let historyNote = "Order created";
+    if (finalStatus === "draft") historyNote = "DRAFT_CREATED";
+    else if (finalStatus === "backordered") historyNote = "BACKORDER_CREATED";
 
     await StatusHistory.create({
       orderId,
       fromStatus: null,
-      toStatus: "placed",
+      toStatus: finalStatus,
       changedBy: changedBy || "system",
-      note: "Order created",
+      note: historyNote,
     });
 
     return NextResponse.json(order, { status: 201 });
