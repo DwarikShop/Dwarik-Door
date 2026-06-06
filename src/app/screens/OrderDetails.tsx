@@ -22,6 +22,7 @@ import {
   Printer,
   FileText,
   MessageSquare,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components";
@@ -101,6 +102,7 @@ export function OrderDetails() {
 
   const canCancel = ["placed", "backordered"].includes(order.status);
   const canConvert = order.status === "draft";
+  const canEdit = isOwner && ["placed", "backordered"].includes(order.status);
 
   const timeline = [
     { status: "draft", label: "Draft", active: order.status === "draft", hidden: order.status !== "draft" },
@@ -742,7 +744,7 @@ export function OrderDetails() {
                   <User size={11} className="text-muted-foreground/60" /> Operator Assigned
                 </span>
                 <span className="font-bold text-foreground capitalize">
-                  {order.assignedTo}
+                {order.assignedTo}
                 </span>
               </div>
             )}
@@ -760,17 +762,32 @@ export function OrderDetails() {
             {isUpdating ? "Converting…" : "Convert To Order"}
           </Button>
         )}
-        
-        {canCancel && (
-          <Button
-            variant="destructive"
-            className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer"
-            disabled={isUpdating}
-            onClick={handleCancel}
-          >
-            <X size={15} className="mr-1.5" />
-            {isUpdating ? "Processing request…" : "Request Order Cancellation"}
-          </Button>
+
+        {(canEdit || canCancel) && (
+          <div className="flex gap-2.5 mb-3 w-full">
+            {canEdit && (
+              <Button
+                className="flex-1 h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm shadow-accent/10 cursor-pointer flex items-center justify-center gap-1.5"
+                disabled={isUpdating}
+                onClick={() => router.push(`/place-order?editOrderId=${order.id}`)}
+              >
+                <Edit size={14} />
+                Edit Order
+              </Button>
+            )}
+            
+            {canCancel && (
+              <Button
+                variant="destructive"
+                className="flex-1 h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer flex items-center justify-center gap-1.5"
+                disabled={isUpdating}
+                onClick={handleCancel}
+              >
+                <X size={14} />
+                Cancel Order
+              </Button>
+            )}
+          </div>
         )}
       </main>
 

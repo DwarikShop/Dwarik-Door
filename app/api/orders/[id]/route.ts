@@ -39,11 +39,34 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params;
 
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(AUTH_COOKIE)?.value;
+    const user = token ? await verifyTokenSafe(token) : null;
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await connectDB();
     const body = await request.json();
 
     // Whitelist — what fields can be updated via this endpoint
-    const allowed = ["assignedTo", "customerName", "customerPhone", "customization", "productId", "productName", "productImage", "quantity", "height", "width", "unit"];
+    const allowed = [
+      "assignedTo",
+      "customerName",
+      "customerPhone",
+      "customization",
+      "productId",
+      "productName",
+      "productImage",
+      "quantity",
+      "height",
+      "width",
+      "unit",
+      "groupId",
+      "orderType",
+      "status"
+    ];
     const update: Record<string, any> = {};
     for (const key of allowed) {
       if (key in body) update[key] = body[key];
@@ -54,17 +77,61 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (["in_progress", "done", "shipped"].includes(order.status)) {
+    // Only allow editing placed/backordered orders if the user is an owner
+    if (order.status !== "draft" && user.role !== "owner") {
+      return NextResponse.json({ error: "Forbidden: Only owners can edit placed orders" }, { status: 403 });
+    }
+
+    if (["in_progress", "done", "shipped", "cancelled", "rejected"].includes(order.status)) {
       return NextResponse.json({ error: "Order cannot be edited in its current status" }, { status: 400 });
     }
 
     const changedBy = body.changedBy || "system";
     let inventoryFreed = false;
     let oldProductId = order.productId;
+    let draftConverted = false;
+
+    // Handle status change from draft to placed/backordered
+    if (order.status === "draft" && update.status && update.status !== "draft") {
+      const finalProductId = update.productId || order.productId;
+      const product = await Product.findOne({ id: finalProductId });
+      if (!product) {
+        return NextResponse.json({ error: `Product "${finalProductId}" not found` }, { status: 404 });
+      }
+
+      const finalQuantity = update.quantity !== undefined ? update.quantity : order.quantity;
+      const availableBeforeReservation = product.stock - product.reserved;
+
+      if (availableBeforeReservation >= finalQuantity) {
+        order.status = "placed";
+        order.isInventoryShortage = false;
+        order.shortageQuantity = 0;
+      } else {
+        order.status = "backordered";
+        order.isInventoryShortage = true;
+        order.shortageQuantity = Math.max(0, finalQuantity - availableBeforeReservation);
+      }
+
+      order.availableAtOrderTime = availableBeforeReservation;
+      order.reservedQuantity = finalQuantity;
+
+      product.reserved += finalQuantity;
+      await product.save();
+
+      const { StatusHistory } = await import("@/app/models");
+      await StatusHistory.create({
+        orderId: order.id,
+        fromStatus: "draft",
+        toStatus: order.status,
+        changedBy,
+        note: "DRAFT_CONVERTED_TO_ORDER",
+      });
+      draftConverted = true;
+    }
 
     // Handle Product Change
     if (update.productId && update.productId !== order.productId) {
-      if (order.status !== "draft") {
+      if (order.status !== "draft" && !draftConverted) {
         const oldProduct = await Product.findOne({ id: order.productId });
         const newProduct = await Product.findOne({ id: update.productId });
         
@@ -110,7 +177,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     } 
     // Handle Quantity Change (if product didn't change)
     else if (update.quantity !== undefined && update.quantity !== order.quantity) {
-      if (order.status !== "draft") {
+      if (order.status !== "draft" && !draftConverted) {
         const product = await Product.findOne({ id: order.productId });
         if (product) {
           const delta = update.quantity - order.quantity;
@@ -151,7 +218,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     // Apply the rest of the updates
     for (const key in update) {
-      if (key !== "productId" && key !== "quantity") {
+      if (key !== "productId" && key !== "quantity" && key !== "groupId" && key !== "orderType") {
         (order as any)[key] = update[key];
       }
     }
@@ -159,6 +226,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (update.productName) order.productName = update.productName;
     if (update.productImage) order.productImage = update.productImage;
     if (update.quantity !== undefined) order.quantity = update.quantity;
+
+    if (update.orderType === "single") {
+      order.groupId = undefined;
+    } else if ("groupId" in update) {
+      order.groupId = update.groupId;
+    }
+    if ("orderType" in update) {
+      order.orderType = update.orderType;
+    }
 
     await order.save();
 

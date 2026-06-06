@@ -42,6 +42,7 @@ function Toggle({
 
 // ── Single order item state ───────────────────────────────────────────────────
 interface OrderItem {
+  id?: string;
   product: ReturnType<typeof useProducts>["products"][0] | null;
   height: string;
   width: string;
@@ -100,14 +101,19 @@ export function PlaceOrderScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Edit draft logic
+  // Edit draft or order logic
   const searchParams = useSearchParams();
   const editDraftId = searchParams.get("editDraftId");
-  const [isDraftLoading, setIsDraftLoading] = useState(!!editDraftId);
+  const editOrderId = searchParams.get("editOrderId");
+  const editId = editDraftId || editOrderId;
+  const [originalStatus, setOriginalStatus] = useState<string | null>(null);
+  const [isDraftLoading, setIsDraftLoading] = useState(!!editId);
+  const [initialGroupOrderIds, setInitialGroupOrderIds] = useState<string[]>([]);
+  const [loadedGroupId, setLoadedGroupId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (editDraftId && products.length > 0) {
-      fetch(`/api/orders/${editDraftId}`, { credentials: "include" })
+    if (editId && products.length > 0) {
+      fetch(`/api/orders/${editId}`, { credentials: "include" })
         .then((res) => res.json())
         .then((data) => {
           if (data.error) {
@@ -115,11 +121,19 @@ export function PlaceOrderScreen() {
             setIsDraftLoading(false);
             return;
           }
+          setOriginalStatus(data.status);
+
+          // If editing a placed or backordered order, verify it has not started
+          if (editOrderId && ["in_progress", "done", "shipped", "cancelled", "rejected"].includes(data.status)) {
+            toast.error("Order has already started or is completed/cancelled, and cannot be edited.");
+            router.push(`/orders/${data.id}`);
+            return;
+          }
+
           setCustomerName(data.customerName || "");
           setCustomerPhone(data.customerPhone || "");
           setIsGroupOrder(data.orderType === "group");
-
-          const prod = products.find((p) => p.id === data.productId) || null;
+          setLoadedGroupId(data.groupId);
 
           const parseDec = (val: number | undefined | null, unit: string) => {
             if (val === undefined || val === null || isNaN(val)) return { integer: "", fraction: "" };
@@ -135,36 +149,67 @@ export function PlaceOrderScreen() {
             };
           };
 
-          const heightDec = parseDec(data.height, data.unit || "inch");
-          const widthDec = parseDec(data.width, data.unit || "inch");
-
-          const item: OrderItem = {
-            product: prod,
-            height: heightDec.integer,
-            width: widthDec.integer,
-            heightFraction: heightDec.fraction,
-            widthFraction: widthDec.fraction,
-            unit: data.unit || "inch",
-            packaging: data.packaging || "plastic",
-            freeSize: data.freeSize || false,
-            quantity: (data.quantity || 1).toString(),
-            customization: !!data.customization,
-            customizationText: data.customization || "",
+          const mapSingleOrder = (o: any) => {
+            const prod = products.find((p) => p.id === o.productId) || null;
+            const heightDec = parseDec(o.height, o.unit || "inch");
+            const widthDec = parseDec(o.width, o.unit || "inch");
+            return {
+              id: o.id,
+              product: prod,
+              height: heightDec.integer,
+              width: widthDec.integer,
+              heightFraction: heightDec.fraction,
+              widthFraction: widthDec.fraction,
+              unit: o.unit || "inch",
+              packaging: o.packaging || "plastic",
+              freeSize: o.freeSize || false,
+              quantity: (o.quantity || 1).toString(),
+              customization: !!o.customization,
+              customizationText: o.customization || "",
+            };
           };
 
-          if (data.orderType === "group") {
-            setGroupItems([item]); // Assuming draft only saved one item initially, or we just load it into the first one
+          if (data.groupId && data.orderType === "group") {
+            fetch(`/api/orders?groupId=${data.groupId}`, { credentials: "include" })
+              .then((res) => res.json())
+              .then((groupData) => {
+                if (Array.isArray(groupData)) {
+                  // Only show active (non-cancelled, non-rejected) items in the editor
+                  const activeGroupData = groupData.filter(
+                    (o) => !["cancelled", "rejected"].includes(o.status)
+                  );
+                  const items = activeGroupData.map(mapSingleOrder);
+                  setGroupItems(items);
+                  setGroupSearches(items.map(() => ""));
+                  setInitialGroupOrderIds(activeGroupData.map((o) => o.id));
+                } else {
+                  const singleItemMapped = mapSingleOrder(data);
+                  setGroupItems([singleItemMapped]);
+                  setGroupSearches([""]);
+                  setInitialGroupOrderIds([data.id]);
+                }
+                setIsDraftLoading(false);
+              })
+              .catch(() => {
+                const singleItemMapped = mapSingleOrder(data);
+                setGroupItems([singleItemMapped]);
+                setGroupSearches([""]);
+                setInitialGroupOrderIds([data.id]);
+                setIsDraftLoading(false);
+              });
           } else {
-            setSingleItem(item);
+            const singleItemMapped = mapSingleOrder(data);
+            setSingleItem(singleItemMapped);
+            setInitialGroupOrderIds([]);
+            setIsDraftLoading(false);
           }
-          setIsDraftLoading(false);
         })
         .catch(() => {
-          toast.error("Failed to load draft");
+          toast.error("Failed to load order data");
           setIsDraftLoading(false);
         });
     }
-  }, [editDraftId, products]);
+  }, [editId, editOrderId, products, router]);
 
   // Dropdown lazy loading indices
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
@@ -248,8 +293,8 @@ export function PlaceOrderScreen() {
     try {
       let groupId: string | undefined;
 
-      // Group orders: Create group first
-      if (isGroupOrder) {
+      // Group orders: Create group first (only if we don't already have a loaded group)
+      if (isGroupOrder && !loadedGroupId) {
         const grpRes = await fetch("/api/order-groups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -270,7 +315,9 @@ export function PlaceOrderScreen() {
         groupId = grp.id;
       }
 
-      // Place sequentially
+      const activeGroupId = groupId || loadedGroupId;
+
+      // Place / Update sequentially
       for (const item of items) {
         const parseFrac = (f: string) => {
           if (!f) return 0;
@@ -278,8 +325,12 @@ export function PlaceOrderScreen() {
           return parseInt(n) / parseInt(d);
         };
 
-        const r = await fetch(editDraftId ? `/api/orders/${editDraftId}` : "/api/orders", {
-          method: editDraftId ? "PATCH" : "POST",
+        const isExisting = !!item.id;
+        const url = isExisting ? `/api/orders/${item.id}` : "/api/orders";
+        const method = isExisting ? "PATCH" : "POST";
+
+        const r = await fetch(url, {
+          method,
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
@@ -295,7 +346,7 @@ export function PlaceOrderScreen() {
             quantity: parseInt(item.quantity) || 1,
             customerName,
             customerPhone,
-            groupId,
+            groupId: activeGroupId || undefined,
             orderType: isGroupOrder ? "group" : "single",
             changedBy: user?.id || "owner",
             status,
@@ -308,18 +359,48 @@ export function PlaceOrderScreen() {
         }
         const data = await r.json();
         if (!r.ok) {
-          toast.error(data.error || "Failed to place order");
+          toast.error(data.error || "Failed to save order");
           return;
         }
       }
 
-      // Update group totalItems
-      if (groupId) {
-        const grpUpdRes = await fetch(`/api/order-groups/${groupId}`, {
+      // Handle removed items
+      if (editId) {
+        const remainingIds = new Set(items.map((it) => it.id).filter(Boolean));
+        const deletedIds = initialGroupOrderIds.filter((id) => !remainingIds.has(id));
+
+        for (const delId of deletedIds) {
+          if (originalStatus === "draft") {
+            await fetch(`/api/orders/${delId}`, {
+              method: "DELETE",
+              credentials: "include",
+            });
+          } else {
+            await fetch(`/api/orders/${delId}/status`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                toStatus: "cancelled",
+                changedBy: user?.id || "owner",
+                note: "Removed from group order during edit",
+              }),
+            });
+          }
+        }
+      }
+
+      // Update group totalItems and customer details
+      if (activeGroupId) {
+        const grpUpdRes = await fetch(`/api/order-groups/${activeGroupId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ totalItems: items.length }),
+          body: JSON.stringify({
+            totalItems: items.length,
+            customerName,
+            customerPhone,
+          }),
         });
         if (grpUpdRes.status === 401) {
           logout();
@@ -329,14 +410,20 @@ export function PlaceOrderScreen() {
       }
 
       toast.success(
-        isGroupOrder
-          ? `Group order placed successfully — ${items.length} items`
-          : "Order placed successfully!",
+        editOrderId
+          ? "Order changes saved successfully!"
+          : isGroupOrder
+            ? `Group order placed successfully — ${items.length} items`
+            : "Order placed successfully!",
       );
       setTimeout(() => router.push("/orders"), 500);
     } catch {
       toast.success(
-        isGroupOrder ? "Group order placed!" : "Order placed successfully!",
+        editOrderId
+          ? "Order changes saved!"
+          : isGroupOrder
+            ? "Group order placed!"
+            : "Order placed successfully!",
       );
       setTimeout(() => router.push("/orders"), 500);
     } finally {
@@ -692,9 +779,11 @@ export function PlaceOrderScreen() {
           </button>
           <div>
             <p className="text-[10px] text-neutral-400/80 font-extrabold uppercase tracking-widest leading-none">
-              Customer Portal
+              {originalStatus === "placed" || originalStatus === "backordered" ? "Order Editor" : "Customer Portal"}
             </p>
-            <h1 className="text-lg font-black tracking-tight text-white mt-0.5">Place Order</h1>
+            <h1 className="text-lg font-black tracking-tight text-white mt-0.5">
+              {originalStatus === "placed" || originalStatus === "backordered" ? "Edit Order" : "Place Order"}
+            </h1>
           </div>
         </div>
       </header>
@@ -846,29 +935,53 @@ export function PlaceOrderScreen() {
           {/* Submit Action Block */}
           <div className="flex flex-col gap-2 pt-4 border-t border-border/30">
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer"
-                onClick={(e) => handleSubmit(e, "draft")}
-                disabled={isSubmitting || !!phoneError}
-              >
-                Save Draft
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15"
-                disabled={isSubmitting || !!phoneError}
-                onClick={(e) => handleSubmit(e, "placed")}
-              >
-                {isSubmitting
-                  ? "Processing…"
-                  : isGroupOrder
-                    ? `Place Group (${groupItems.length})`
-                    : "Place Order"}
-              </Button>
+              {originalStatus === "placed" || originalStatus === "backordered" ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer"
+                    onClick={() => router.back()}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15"
+                    disabled={isSubmitting || !!phoneError}
+                    onClick={(e) => handleSubmit(e, originalStatus as any)}
+                  >
+                    {isSubmitting ? "Saving…" : "Save Changes"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer"
+                    onClick={(e) => handleSubmit(e, "draft")}
+                    disabled={isSubmitting || !!phoneError}
+                  >
+                    Save Draft
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 h-11 rounded-xl text-xs uppercase tracking-wider font-extrabold cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/15"
+                    disabled={isSubmitting || !!phoneError}
+                    onClick={(e) => handleSubmit(e, "placed")}
+                  >
+                    {isSubmitting
+                      ? "Processing…"
+                      : isGroupOrder
+                        ? `Place Group (${groupItems.length})`
+                        : "Place Order"}
+                  </Button>
+                </>
+              )}
             </div>
-            {editDraftId && (
+            {editDraftId && originalStatus === "draft" && (
               <Button
                 type="button"
                 variant="destructive"

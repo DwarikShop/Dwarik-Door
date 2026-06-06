@@ -86,7 +86,7 @@ export async function GET(request: Request) {
     }
 
     const orders = await Order.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .limit(limit)
       .lean();
 
