@@ -7,7 +7,7 @@ import { FAB } from "../components/FAB";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
-import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight, Trash2, Edit } from "lucide-react";
+import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDimension } from "../utils/format";
 import type { TOrder } from "../models/types";
@@ -90,6 +90,7 @@ export function OrderManagement() {
 
   const statusFilters = [
     { value: "all", label: "All" },
+    { value: "cancelled", label: "Cancelled" },
     { value: "draft", label: "Draft" },
     { value: "placed", label: "Placed" },
     { value: "backordered", label: "Backordered" },
@@ -252,16 +253,6 @@ export function OrderManagement() {
                             <Trash2 size={14} />
                           </button>
                         )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/place-order?editOrderId=${order.id}`);
-                            }}
-                            className="p-1 text-accent/70 hover:text-accent hover:bg-accent/10 rounded-md transition-colors"
-                            title="Edit Order"
-                          >
-                            <Edit size={14} />
-                          </button>
                         <StatusChip status={order.status} className="text-[9px] px-1.5 py-0.5 shrink-0" />
                       </div>
                     </div>
@@ -369,16 +360,6 @@ export function OrderManagement() {
                       </div>
                       
                       <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(firstOrder.status === 'draft' ? `/place-order?editDraftId=${firstOrder.id}` : `/place-order?editOrderId=${firstOrder.id}`);
-                            }}
-                            className="p-1 text-accent/70 hover:text-accent hover:bg-accent/10 rounded-md transition-colors shrink-0"
-                            title="Edit Group Order"
-                          >
-                            <Edit size={14} />
-                          </button>
                         {isExpanded ? (
                           <ChevronUp size={16} className="text-muted-foreground shrink-0" />
                         ) : (

@@ -66,10 +66,15 @@ export async function GET(request: Request) {
         { status: "shipped", updatedAt: { $gte: tenDaysAgo } },
       ];
     }
-    // Owners see everything — no status filter unless explicitly requested
-
-    if (status) {
-      filter.status = status;
+    // Owners see everything — default to excluding cancelled unless explicitly requested or status is 'all'
+    if (role === "owner") {
+      if (status) {
+        if (status !== "all") {
+          filter.status = status;
+        }
+      } else {
+        filter.status = { $ne: "cancelled" };
+      }
     }
 
     if (search) {

@@ -83,7 +83,7 @@ export function OwnerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const { products } = useProducts();
-  const { orders } = useOrders({ role: "owner" });
+  const { orders } = useOrders({ role: "owner", status: "all" });
   const [showNotifications, setShowNotifications] = useState(false);
 
   const stats = {
@@ -101,7 +101,8 @@ export function OwnerDashboard() {
   };
 
   const hasAlerts = stats.damaged > 0 || stats.lowInventory > 0 || stats.backordered > 0;
-  const recentOrders = [...orders]
+  const recentOrders = orders
+    .filter((o) => o.status !== "cancelled")
     .sort(
       (a, b) =>
         new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime(),
