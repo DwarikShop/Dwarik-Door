@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components";
 import type { TOrder } from "../models/types";
+import { formatDimension } from "../utils/format";
 
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
@@ -179,7 +180,7 @@ export function OrderDetails() {
           </div>
         </td>
         <td class="py-4 px-4 text-xs text-center font-bold text-gray-700">
-          ${o.freeSize ? 'Free Size' : `${o.height} × ${o.width} ${o.unit}`}
+          ${o.freeSize ? 'Free Size' : `${formatDimension(o.height, o.unit)} × ${formatDimension(o.width, o.unit)} ${o.unit}`}
         </td>
         <td class="py-4 px-4 text-xs text-center font-bold text-gray-700 capitalize">
           ${o.packaging || 'Plastic Wrap'}
@@ -378,7 +379,7 @@ export function OrderDetails() {
         doc.setTextColor(26, 18, 16);
         doc.setFontSize(9);
 
-        const dimensions = o.freeSize ? "Free Size" : `${o.height} x ${o.width} ${o.unit}`;
+        const dimensions = o.freeSize ? "Free Size" : `${formatDimension(o.height, o.unit)} x ${formatDimension(o.width, o.unit)} ${o.unit}`;
         doc.text(dimensions, 100, currentY + 6);
 
         const packaging = o.packaging || "Plastic Wrap";
@@ -481,7 +482,7 @@ export function OrderDetails() {
     text += `----------------------------------------\n\n`;
 
     groupOrders.forEach((o, index) => {
-      const dimensions = o.freeSize ? "Free Size" : `${o.height} x ${o.width} ${o.unit}`;
+      const dimensions = o.freeSize ? "Free Size" : `${formatDimension(o.height, o.unit)} x ${formatDimension(o.width, o.unit)} ${o.unit}`;
       text += `*Door #${index + 1} (${o.id})*\n`;
       text += `- *Item*: ${o.productName}\n`;
       text += `- *Dimensions*: ${dimensions}\n`;
@@ -574,7 +575,7 @@ export function OrderDetails() {
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Box size={12} className="text-accent" />
                   <span className="font-medium text-foreground">
-                    {order.freeSize ? "Free Size" : `${order.height}×${order.width} ${order.unit}`}
+                    {order.freeSize ? "Free Size" : `${formatDimension(order.height, order.unit)}×${formatDimension(order.width, order.unit)} ${order.unit}`}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

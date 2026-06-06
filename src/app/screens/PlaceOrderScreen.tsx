@@ -120,12 +120,30 @@ export function PlaceOrderScreen() {
           setIsGroupOrder(data.orderType === "group");
 
           const prod = products.find((p) => p.id === data.productId) || null;
+
+          const parseDec = (val: number | undefined | null, unit: string) => {
+            if (val === undefined || val === null || isNaN(val)) return { integer: "", fraction: "" };
+            if (unit !== "inch") {
+              return { integer: val.toString(), fraction: "" };
+            }
+            const integer = Math.floor(val);
+            const decimal = val - integer;
+            const eighths = Math.round(decimal * 8);
+            return {
+              integer: integer > 0 || eighths === 0 ? integer.toString() : "",
+              fraction: eighths > 0 ? `${eighths}/8` : "",
+            };
+          };
+
+          const heightDec = parseDec(data.height, data.unit || "inch");
+          const widthDec = parseDec(data.width, data.unit || "inch");
+
           const item: OrderItem = {
             product: prod,
-            height: Math.floor(data.height || 0).toString(),
-            width: Math.floor(data.width || 0).toString(),
-            heightFraction: "0",
-            widthFraction: "0",
+            height: heightDec.integer,
+            width: widthDec.integer,
+            heightFraction: heightDec.fraction,
+            widthFraction: widthDec.fraction,
             unit: data.unit || "inch",
             packaging: data.packaging || "plastic",
             freeSize: data.freeSize || false,
@@ -217,7 +235,9 @@ export function PlaceOrderScreen() {
           toast.error(`${label}: Please select a product`);
           return;
         }
-        if (!item.freeSize && (!item.height || !item.width)) {
+        const hasHeight = item.height || (item.unit === "inch" && item.heightFraction);
+        const hasWidth = item.width || (item.unit === "inch" && item.widthFraction);
+        if (!item.freeSize && (!hasHeight || !hasWidth)) {
           toast.error(`${label}: Enter dimensions or enable Free Size`);
           return;
         }
@@ -517,7 +537,7 @@ export function PlaceOrderScreen() {
                             onItemChange({ height: e.target.value })
                           }
                           className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1"
-                          required={!item.freeSize}
+                          required={!item.freeSize && !(item.unit === "inch" && item.heightFraction)}
                         />
                         {item.unit === "inch" && (
                           <select
@@ -550,7 +570,7 @@ export function PlaceOrderScreen() {
                             onItemChange({ width: e.target.value })
                           }
                           className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1"
-                          required={!item.freeSize}
+                          required={!item.freeSize && !(item.unit === "inch" && item.widthFraction)}
                         />
                         {item.unit === "inch" && (
                           <select

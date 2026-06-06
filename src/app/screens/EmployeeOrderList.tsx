@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
 import { Search, Package, ClipboardList, X, ChevronRight, Clock } from "lucide-react";
+import { formatDimension } from "../utils/format";
 
 export function EmployeeOrderList() {
   const router = useRouter();
@@ -219,7 +220,7 @@ export function EmployeeOrderList() {
                       <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-border/10">
                         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
                           <span className="font-medium bg-secondary/40 px-1.5 py-0.2 rounded text-[11px]">
-                            {order.height} × {order.width} {order.unit}
+                            {order.freeSize ? "Free Size" : `${formatDimension(order.height, order.unit)} × ${formatDimension(order.width, order.unit)} ${order.unit}`}
                           </span>
                           <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
                           <span className="font-bold text-accent text-xs">

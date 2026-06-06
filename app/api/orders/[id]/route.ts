@@ -162,7 +162,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     await order.save();
 
-    if (inventoryFreed) {
+    if (inventoryFreed && oldProductId) {
       const { resolveFIFOBackorders } = await import("@/lib/inventory");
       await resolveFIFOBackorders(oldProductId, changedBy);
     }

@@ -9,6 +9,7 @@ import { useOrder } from "../hooks/useOrder";
 import { useAuth } from "../context/AuthContext";
 import { ArrowLeft, Play, Check, Truck, X, Calendar, Phone, User, Clock, Sparkles, Box, Info } from "lucide-react";
 import { toast } from "sonner";
+import { formatDimension } from "../utils/format";
 
 export function EmployeeOrderWorkflow() {
   const { id } = useParams<{ id: string }>();
@@ -169,7 +170,7 @@ export function EmployeeOrderWorkflow() {
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Box size={12} className="text-accent" />
                   <span className="font-medium text-foreground">
-                    Size: {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
+                    Size: {order.freeSize ? "Free Size" : `${formatDimension(order.height, order.unit)} × ${formatDimension(order.width, order.unit)} ${order.unit}`}
                   </span>
                 </div>
               </div>
