@@ -270,7 +270,7 @@ export function EmployeeOrderWorkflow() {
                 )}
                 <Button
                   className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-accent hover:bg-accent/90 text-accent-foreground flex items-center justify-center gap-1.5 shadow-lg shadow-accent/15 cursor-pointer"
-                  disabled={isUpdating || order.status === "backordered"}
+                  disabled={isUpdating || order.status === "backordered" || order.isInventoryShortage}
                   onClick={handleStartWork}
                 >
                   <Play size={14} />

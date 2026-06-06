@@ -33,6 +33,7 @@ export function EmployeeOrderList() {
   const statusFilters = [
     { value: "all", label: "All" },
     { value: "placed", label: "Placed" },
+    { value: "backordered", label: "Backordered" },
     { value: "in_progress", label: "Progress" },
     { value: "done", label: "Done" },
     { value: "shipped", label: "Shipped" },

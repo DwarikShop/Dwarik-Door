@@ -113,6 +113,14 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Block employees from processing backordered or shortage orders
+    if (caller.role !== "owner" && (order.status === "backordered" || order.isInventoryShortage)) {
+      return NextResponse.json(
+        { error: "Employees cannot process backordered orders with inventory shortage" },
+        { status: 403 },
+      );
+    }
+
     const fromStatus = order.status as OrderStatus;
 
     // ── Validate transition ───────────────────────────────────────────────────
@@ -141,7 +149,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.reserved,
           newValue: Math.max(0, product.reserved - qty),
           delta: -qty,
-          reason: "ORDER_CANCELLED",
+          reason: "order_cancelled",
           orderId: id,
           changedBy,
         });
@@ -163,7 +171,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.reserved,
           newValue: Math.max(0, product.reserved - qty),
           delta: -qty,
-          reason: "ORDER_REJECTED",
+          reason: "order_rejected",
           orderId: id,
           changedBy,
         });
@@ -198,7 +206,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.reserved,
           newValue: Math.max(0, product.reserved - qty),
           delta: -qty,
-          reason: "ORDER_SHIPPED",
+          reason: "order_shipped",
           orderId: id,
           changedBy,
         });
@@ -209,7 +217,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.stock,
           newValue: Math.max(0, product.stock - qty),
           delta: -qty,
-          reason: "ORDER_SHIPPED",
+          reason: "order_shipped",
           orderId: id,
           changedBy,
         });

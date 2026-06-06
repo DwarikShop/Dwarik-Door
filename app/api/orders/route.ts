@@ -62,7 +62,7 @@ export async function GET(request: Request) {
       // Employees see active orders + shipped within last 10 days
       const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
       filter.$or = [
-        { status: { $in: ["placed", "in_progress", "done"] } },
+        { status: { $in: ["placed", "backordered", "in_progress", "done"] } },
         { status: "shipped", updatedAt: { $gte: tenDaysAgo } },
       ];
     }

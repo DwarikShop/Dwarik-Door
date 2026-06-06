@@ -108,41 +108,42 @@ export function OwnerDashboard() {
     )
     .slice(0, 10);
 
-  const pipeline = [
+  const pulseStats = [
     {
       label: "Pending",
       value: stats.pending,
-      icon: Clock,
       color: "text-info",
-      bg: "bg-info/8",
     },
     {
       label: "Progress",
       value: stats.inProgress,
-      icon: Activity,
       color: "text-warning",
-      bg: "bg-warning/8",
     },
     {
       label: "Done",
       value: stats.done,
-      icon: CheckCircle2,
       color: "text-success",
-      bg: "bg-success/8",
     },
     {
       label: "Shipped",
       value: stats.shipped,
-      icon: Truck,
       color: "text-primary",
-      bg: "bg-primary/10",
     },
-  ];
-
-  const auxiliaryStats = [
-    { label: "Drafts", value: stats.drafts, color: "text-muted-foreground", bg: "bg-muted/30" },
-    { label: "Cancelled", value: stats.cancelled, color: "text-muted-foreground", bg: "bg-secondary" },
-    { label: "Rejected", value: stats.rejected, color: "text-destructive", bg: "bg-destructive/10" },
+    {
+      label: "Drafts",
+      value: stats.drafts,
+      color: "text-muted-foreground",
+    },
+    {
+      label: "Cancelled",
+      value: stats.cancelled,
+      color: "text-muted-foreground",
+    },
+    {
+      label: "Rejected",
+      value: stats.rejected,
+      color: "text-destructive",
+    },
   ];
 
   return (
@@ -249,34 +250,17 @@ export function OwnerDashboard() {
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            {pipeline.map((s) => (
+          <div className="flex gap-2 py-1 overflow-x-auto scrollbar-none">
+            {pulseStats.map((s) => (
               <button
                 key={s.label}
                 onClick={() => router.push("/orders")}
-                className="bg-card border border-border/40 rounded-2xl overflow-hidden shadow-sm active:scale-95 cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center py-3 px-1 gap-1"
+                className="flex-none w-[92px] bg-card border border-border/40 rounded-2xl overflow-hidden shadow-sm active:scale-95 cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center py-3.5 px-1 gap-1"
               >
                 <p className={`text-2xl font-black leading-none tabular-nums ${s.color}`}>
                   {s.value}
                 </p>
-                <p className="text-[8.5px] uppercase tracking-widest font-extrabold text-muted-foreground text-center leading-tight">
-                  {s.label}
-                </p>
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {auxiliaryStats.map((s) => (
-              <button
-                key={s.label}
-                onClick={() => router.push("/orders")}
-                className={`border border-border/40 rounded-2xl overflow-hidden shadow-sm active:scale-95 cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center py-2.5 px-1 gap-0.5 ${s.bg}`}
-              >
-                <p className={`text-lg font-black leading-none tabular-nums ${s.color}`}>
-                  {s.value}
-                </p>
-                <p className="text-[8px] uppercase tracking-widest font-extrabold text-foreground/60 text-center leading-tight mt-1">
+                <p className="text-[9.5px] uppercase tracking-wide font-extrabold text-muted-foreground text-center leading-tight">
                   {s.label}
                 </p>
               </button>

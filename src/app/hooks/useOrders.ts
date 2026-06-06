@@ -45,7 +45,7 @@ function normaliseOrder(
 function applyEmployeeFilter(orders: TOrder[]): TOrder[] {
   const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
   return orders.filter((o) => {
-    if (["placed", "in_progress", "done"].includes(o.status)) return true;
+    if (["placed", "backordered", "in_progress", "done"].includes(o.status)) return true;
     if (o.status === "shipped") return new Date(o.updatedAt!) >= tenDaysAgo;
     return false;
   });
