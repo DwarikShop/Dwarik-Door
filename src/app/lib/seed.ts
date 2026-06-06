@@ -8,84 +8,49 @@
  */
 
 import "dotenv/config";
-import { products, employees, orders } from "../data/mockData";
+import { products, orders } from "../data/mockData";
 import { connectDB, disconnectDB } from "./mongodb";
-import { Product, Employee, Order } from "../models";
+import { Product, Employee, Order, OrderGroup, StatusHistory, InventoryLog } from "../models";
 
 async function seed() {
   console.log("🌱  Starting seed...\n");
 
   await connectDB();
 
+  console.log("🧹  Clearing existing database collections...");
+  await Promise.all([
+    Order.deleteMany({}),
+    Product.deleteMany({}),
+    Employee.deleteMany({}),
+    OrderGroup.deleteMany({}),
+    StatusHistory.deleteMany({}),
+    InventoryLog.deleteMany({}),
+  ]);
+  console.log("   ✓ Database cleared\n");
+
   // ── Products ──────────────────────────────────────────────────────────────
   console.log("📦  Seeding products...");
-  const productResults = await Promise.all(
-    products.map((p) =>
-      Product.findOneAndUpdate(
-        { id: p.id },
-        {
-          $setOnInsert: {
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            image: p.image,
-            stock: p.stock,
-            reserved: p.reserved,
-            damaged: p.damaged,
-            price: p.price,
-          },
-        },
-        { upsert: true, new: true },
-      ),
-    ),
-  );
+  const productResults = await Product.insertMany(products);
   console.log(`   ✓ ${productResults.length} products seeded\n`);
 
   // ── Employees ─────────────────────────────────────────────────────────────
   console.log("👥  Seeding employees...");
-  // Seed the owner "Dhiraj" only if no owner exists in the database
-  const ownerExists = await Employee.findOne({ role: "owner" });
-  if (!ownerExists) {
-    await Employee.create({
-      id: "EMP-001",
-      name: "Dhiraj",
-      phone: "9776245349",
-      role: "owner",
-      password: "change-me-immediately", // Placeholder to change immediately
-    });
-    console.log("   ✓ Initial owner seeded (Dhiraj / 9776245349)\n");
-  } else {
-    console.log("   ✓ Owner already exists, skipping initial owner seed\n");
-  }
+  const owner = await Employee.create({
+    id: "EMP-001",
+    name: "Dhiraj",
+    phone: "9776245349",
+    role: "owner",
+    password: "Dhiraj@123",
+  });
+  console.log("   ✓ Initial owner seeded (Dhiraj / 9776245349)\n");
 
   // ── Orders ────────────────────────────────────────────────────────────────
-  // Use $set (not $setOnInsert) to avoid conflict with timestamps: true
   console.log("🛒  Seeding orders...");
-  const orderResults = await Promise.all(
-    orders.map((o) =>
-      Order.findOneAndUpdate(
-        { id: o.id },
-        {
-          $set: {
-            id: o.id,
-            productId: o.productId,
-            productName: o.productName,
-            productImage: o.productImage,
-            height: o.height,
-            width: o.width,
-            unit: o.unit,
-            packaging: o.packaging || "plastic",
-            customization: o.customization,
-            quantity: o.quantity,
-            status: o.status,
-            assignedTo: o.assignedTo,
-            customerName: o.customerName,
-            customerPhone: o.customerPhone,
-          },
-        },
-        { upsert: true, new: true },
-      ),
-    ),
+  const orderResults = await Order.insertMany(
+    orders.map((o) => ({
+      ...o,
+      reservedQuantity: ["placed", "in_progress", "done"].includes(o.status) ? o.quantity : 0,
+    }))
   );
   console.log(`   ✓ ${orderResults.length} orders seeded\n`);
 

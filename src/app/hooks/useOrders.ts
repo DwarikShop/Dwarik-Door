@@ -86,11 +86,19 @@ export function useOrders(options: UseOrdersOptions = {}): UseOrdersResult {
       const data: TOrder[] = await res.json();
       setOrders(data.map(normaliseOrder));
     } catch {
-      const filtered =
-        role === "employee"
-          ? applyEmployeeFilter(mockOrders as TOrder[])
-          : (mockOrders as TOrder[]).slice(0, limit);
-      setOrders(filtered);
+      let filtered = mockOrders as TOrder[];
+      if (role === "employee") {
+        filtered = applyEmployeeFilter(filtered);
+      } else {
+        if (status) {
+          if (status !== "all") {
+            filtered = filtered.filter((o) => o.status === status);
+          }
+        } else {
+          filtered = filtered.filter((o) => o.status !== "cancelled");
+        }
+      }
+      setOrders(filtered.slice(0, limit));
     } finally {
       setIsLoading(false);
       setIsFetching(false);

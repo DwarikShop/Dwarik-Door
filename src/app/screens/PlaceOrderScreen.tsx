@@ -54,6 +54,9 @@ interface OrderItem {
   quantity: string;
   customization: boolean;
   customizationText: string;
+  status?: string;
+  originalQuantity?: number;
+  originalReservedQuantity?: number;
 }
 
 const emptyItem = (): OrderItem => ({
@@ -100,6 +103,7 @@ export function PlaceOrderScreen() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemIndexToRemove, setItemIndexToRemove] = useState<number | null>(null);
 
   // Edit draft or order logic
   const searchParams = useSearchParams();
@@ -123,12 +127,7 @@ export function PlaceOrderScreen() {
           }
           setOriginalStatus(data.status);
 
-          // If editing a placed or backordered order, verify it has not started
-          if (editOrderId && ["in_progress", "done", "shipped", "cancelled", "rejected"].includes(data.status)) {
-            toast.error("Order has already started or is completed/cancelled, and cannot be edited.");
-            router.push(`/orders/${data.id}`);
-            return;
-          }
+
 
           setCustomerName(data.customerName || "");
           setCustomerPhone(data.customerPhone || "");
@@ -166,6 +165,9 @@ export function PlaceOrderScreen() {
               quantity: (o.quantity || 1).toString(),
               customization: !!o.customization,
               customizationText: o.customization || "",
+              status: o.status,
+              originalQuantity: o.quantity || 0,
+              originalReservedQuantity: o.reservedQuantity || 0,
             };
           };
 
@@ -227,7 +229,10 @@ export function PlaceOrderScreen() {
   // Stock check
   const getStockError = (item: OrderItem) => {
     if (!item.product) return null;
-    const available = item.product.stock - item.product.reserved;
+    const origReserved = item.originalReservedQuantity !== undefined
+      ? item.originalReservedQuantity
+      : (item.id && item.status && ["placed", "backordered", "in_progress", "done"].includes(item.status) ? (item.originalQuantity || 0) : 0);
+    const available = item.product.stock - (item.product.reserved - origReserved);
     const qty = parseInt(item.quantity) || 0;
     if (available <= 0) return `Out of stock — no units available`;
     if (qty > available)
@@ -417,15 +422,9 @@ export function PlaceOrderScreen() {
             : "Order placed successfully!",
       );
       setTimeout(() => router.push("/orders"), 500);
-    } catch {
-      toast.success(
-        editOrderId
-          ? "Order changes saved!"
-          : isGroupOrder
-            ? "Group order placed!"
-            : "Order placed successfully!",
-      );
-      setTimeout(() => router.push("/orders"), 500);
+    } catch (err) {
+      console.error("Error saving order:", err);
+      toast.error("Failed to save order changes. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -439,8 +438,11 @@ export function PlaceOrderScreen() {
     onItemChange: (patch: Partial<OrderItem>) => void,
     index?: number,
   ) => {
+    const origReserved = item.originalReservedQuantity !== undefined
+      ? item.originalReservedQuantity
+      : (item.id && item.status && ["placed", "backordered", "in_progress", "done"].includes(item.status) ? (item.originalQuantity || 0) : 0);
     const available = item.product
-      ? item.product.stock - item.product.reserved
+      ? item.product.stock - (item.product.reserved - origReserved)
       : 0;
     const stockStatus =
       available > 10 ? "available" : available > 0 ? "low" : "out";
@@ -455,13 +457,22 @@ export function PlaceOrderScreen() {
       }
     };
 
+    const isItemDisabled = !!(item.status && !["draft", "placed", "backordered"].includes(item.status));
+
     return (
       <div className="space-y-4">
         {/* Product Selection */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-            {index !== undefined ? `Product catalog ${index + 1}` : "Select Product"}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+              {index !== undefined ? `Product catalog ${index + 1}` : "Select Product"}
+            </label>
+            {isItemDisabled && (
+              <span className="text-[9px] uppercase font-bold text-destructive/80 bg-destructive/10 px-1.5 py-0.5 rounded">
+                Cannot edit {item.status?.replace("_", " ")} order
+              </span>
+            )}
+          </div>
           <div className="relative group">
             <Search
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors"
@@ -486,17 +497,18 @@ export function PlaceOrderScreen() {
                 onSearchChange(e.target.value);
                 setVisibleCount(12);
               }}
-              disabled={productsLoading}
+              disabled={productsLoading || !!isItemDisabled}
               className="w-full h-11 pl-10 pr-10 rounded-2xl bg-[#1E1311]/5 border border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 text-xs transition-all disabled:opacity-50"
             />
             {search && (
               <button
                 type="button"
+                disabled={isItemDisabled}
                 onClick={() => {
                   onSearchChange("");
                   setVisibleCount(12);
                 }}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-secondary rounded-full text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-secondary rounded-full text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X size={13} />
               </button>
@@ -586,7 +598,7 @@ export function PlaceOrderScreen() {
             <div className="space-y-3 p-3.5 bg-secondary/25 border border-border/40 rounded-2xl">
               <Toggle
                 on={item.freeSize}
-                onToggle={() => onItemChange({ freeSize: !item.freeSize })}
+                onToggle={() => !isItemDisabled && onItemChange({ freeSize: !item.freeSize })}
                 label="Free Size (Standard Dimensions)"
               />
 
@@ -598,8 +610,9 @@ export function PlaceOrderScreen() {
                       <button
                         key={u}
                         type="button"
+                        disabled={isItemDisabled}
                         onClick={() => onItemChange({ unit: u })}
-                        className={`flex-1 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${item.unit === u
+                        className={`flex-1 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${item.unit === u
                             ? "bg-accent text-accent-foreground shadow-sm"
                             : "bg-[#1E1311]/5 text-muted-foreground hover:bg-[#1E1311]/10"
                           }`}
@@ -623,14 +636,16 @@ export function PlaceOrderScreen() {
                           onChange={(e) =>
                             onItemChange({ height: e.target.value })
                           }
-                          className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1"
+                          disabled={isItemDisabled}
+                          className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1 disabled:opacity-50"
                           required={!item.freeSize && !(item.unit === "inch" && item.heightFraction)}
                         />
                         {item.unit === "inch" && (
                           <select
                             value={item.heightFraction || ""}
                             onChange={(e) => onItemChange({ heightFraction: e.target.value })}
-                            className="h-10 w-[72px] rounded-xl bg-secondary/35 border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 text-xs px-2 text-foreground font-medium"
+                            disabled={isItemDisabled}
+                            className="h-10 w-[72px] rounded-xl bg-secondary/35 border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 text-xs px-2 text-foreground font-medium disabled:opacity-50"
                           >
                             <option value="">-</option>
                             <option value="1/8">1/8</option>
@@ -656,14 +671,16 @@ export function PlaceOrderScreen() {
                           onChange={(e) =>
                             onItemChange({ width: e.target.value })
                           }
-                          className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1"
+                          disabled={isItemDisabled}
+                          className="h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 flex-1 disabled:opacity-50"
                           required={!item.freeSize && !(item.unit === "inch" && item.widthFraction)}
                         />
                         {item.unit === "inch" && (
                           <select
                             value={item.widthFraction || ""}
                             onChange={(e) => onItemChange({ widthFraction: e.target.value })}
-                            className="h-10 w-[72px] rounded-xl bg-secondary/35 border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 text-xs px-2 text-foreground font-medium"
+                            disabled={isItemDisabled}
+                            className="h-10 w-[72px] rounded-xl bg-secondary/35 border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 text-xs px-2 text-foreground font-medium disabled:opacity-50"
                           >
                             <option value="">-</option>
                             <option value="1/8">1/8</option>
@@ -692,8 +709,9 @@ export function PlaceOrderScreen() {
                   <button
                     key={p}
                     type="button"
+                    disabled={isItemDisabled}
                     onClick={() => onItemChange({ packaging: p })}
-                    className={`flex-1 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${item.packaging === p
+                    className={`flex-1 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${item.packaging === p
                         ? "bg-accent text-accent-foreground shadow-sm scale-[1.01]"
                         : "bg-[#1E1311]/5 text-muted-foreground hover:bg-[#1E1311]/10"
                       }`}
@@ -721,7 +739,8 @@ export function PlaceOrderScreen() {
                 placeholder="Enter quantity"
                 value={item.quantity}
                 onChange={(e) => onItemChange({ quantity: e.target.value })}
-                className={`h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 ${stockError ? "border-destructive focus-visible:border-destructive" : ""}`}
+                disabled={isItemDisabled}
+                className={`h-10 rounded-xl bg-secondary/35 border-border/60 focus-visible:ring-accent/20 disabled:opacity-50 ${stockError ? "border-destructive focus-visible:border-destructive" : ""}`}
                 required
               />
               {stockError && (
@@ -742,7 +761,7 @@ export function PlaceOrderScreen() {
               <Toggle
                 on={item.customization}
                 onToggle={() =>
-                  onItemChange({ customization: !item.customization })
+                  !isItemDisabled && onItemChange({ customization: !item.customization })
                 }
                 label="Custom Specifications"
               />
@@ -753,7 +772,8 @@ export function PlaceOrderScreen() {
                   onChange={(e) =>
                     onItemChange({ customizationText: e.target.value })
                   }
-                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-secondary/35 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed animate-[fadeIn_0.2s_ease-out]"
+                  disabled={isItemDisabled}
+                  className="w-full px-3 py-2 rounded-xl border border-border/60 bg-secondary/35 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent/15 resize-none text-xs leading-relaxed animate-[fadeIn_0.2s_ease-out] disabled:opacity-50"
                   rows={3}
                 />
               )}
@@ -779,10 +799,10 @@ export function PlaceOrderScreen() {
           </button>
           <div>
             <p className="text-[10px] text-neutral-400/80 font-extrabold uppercase tracking-widest leading-none">
-              {originalStatus === "placed" || originalStatus === "backordered" ? "Order Editor" : "Customer Portal"}
+              {originalStatus && originalStatus !== "draft" ? "Order Editor" : "Customer Portal"}
             </p>
             <h1 className="text-lg font-black tracking-tight text-white mt-0.5">
-              {originalStatus === "placed" || originalStatus === "backordered" ? "Edit Order" : "Place Order"}
+              {originalStatus && originalStatus !== "draft" ? "Edit Order" : "Place Order"}
             </h1>
           </div>
         </div>
@@ -897,10 +917,10 @@ export function PlaceOrderScreen() {
                     <span className="text-[10px] font-extrabold text-accent uppercase tracking-wide">
                       Door Item {index + 1}
                     </span>
-                    {groupItems.length > 1 && (
+                    {groupItems.length > 1 && (!item.status || ["draft", "placed", "backordered"].includes(item.status)) && (
                       <button
                         type="button"
-                        onClick={() => removeGroupItem(index)}
+                        onClick={() => setItemIndexToRemove(index)}
                         className="p-1 hover:bg-destructive/10 text-destructive rounded-lg transition-colors cursor-pointer"
                         aria-label="Remove item"
                       >
@@ -935,7 +955,7 @@ export function PlaceOrderScreen() {
           {/* Submit Action Block */}
           <div className="flex flex-col gap-2 pt-4 border-t border-border/30">
             <div className="flex gap-2">
-              {originalStatus === "placed" || originalStatus === "backordered" ? (
+              {originalStatus && originalStatus !== "draft" ? (
                 <>
                   <Button
                     type="button"
@@ -1042,6 +1062,44 @@ export function PlaceOrderScreen() {
               }}
             >
               {isSubmitting ? "Deleting..." : "Delete Permanently"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Item Remove Confirmation Dialog */}
+      <Dialog open={itemIndexToRemove !== null} onOpenChange={(open) => !open && setItemIndexToRemove(null)}>
+        <DialogContent className="sm:max-w-md bg-card border border-border/50 p-6 rounded-3xl shadow-xl">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
+              <Trash2 className="text-destructive" size={24} />
+              Remove Item
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">
+              Are you sure you want to remove this item from the group order?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 justify-end mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setItemIndexToRemove(null)}
+              className="rounded-xl h-10 font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="rounded-xl h-10 font-bold bg-destructive/90 hover:bg-destructive"
+              onClick={() => {
+                if (itemIndexToRemove !== null) {
+                  removeGroupItem(itemIndexToRemove);
+                  setItemIndexToRemove(null);
+                }
+              }}
+            >
+              Remove
             </Button>
           </div>
         </DialogContent>

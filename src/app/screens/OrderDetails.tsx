@@ -23,6 +23,7 @@ import {
   FileText,
   MessageSquare,
   Edit,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components";
@@ -103,8 +104,12 @@ export function OrderDetails() {
   const canCancel = ["placed", "backordered"].includes(order.status);
   const canConvert = order.status === "draft";
   const canEdit = isOwner && ["placed", "backordered"].includes(order.status);
+  const canDelete = order.status === "cancelled" && isOwner;
 
-  const timeline = [
+  const timeline = order.status === "cancelled" ? [
+    { status: "placed", label: "Placed", active: true },
+    { status: "cancelled", label: "Cancelled", active: true },
+  ] : [
     { status: "draft", label: "Draft", active: order.status === "draft", hidden: order.status !== "draft" },
     { status: "placed", label: "Placed", active: order.status !== "draft" },
     {
@@ -131,6 +136,19 @@ export function OrderDetails() {
       router.back();
     } else {
       toast.error("Failed to cancel order. Please try again.");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/orders/${order.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Order deleted successfully");
+      router.back();
+    } catch {
+      toast.error("Failed to delete order. Please try again.");
     }
   };
 
@@ -542,16 +560,40 @@ export function OrderDetails() {
               <span className="text-[9px] uppercase tracking-wider font-extrabold text-accent">Order Reference</span>
               <p className="text-sm font-mono font-bold text-foreground mt-0.5">{order.id}</p>
             </div>
-            {isOwner && (
-              <button
-                onClick={() => setIsShareOpen(true)}
-                className="p-2 bg-accent/10 border border-accent/25 hover:bg-accent/20 active:scale-90 text-accent rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
-                title="Share Order Details"
-                aria-label="Share Order Details"
-              >
-                <Share2 size={18} />
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {canEdit && (
+                <button
+                  onClick={() => router.push(`/place-order?editOrderId=${order.id}`)}
+                  disabled={isUpdating}
+                  className="p-2 bg-accent/10 border border-accent/25 hover:bg-accent/20 active:scale-90 text-accent rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
+                  title="Edit Order"
+                  aria-label="Edit Order"
+                >
+                  <Edit size={18} />
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={handleDelete}
+                  disabled={isUpdating}
+                  className="p-2 bg-destructive/10 border border-destructive/25 hover:bg-destructive/20 active:scale-90 text-destructive rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
+                  title="Delete Order"
+                  aria-label="Delete Order"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
+              {isOwner && (
+                <button
+                  onClick={() => setIsShareOpen(true)}
+                  className="p-2 bg-accent/10 border border-accent/25 hover:bg-accent/20 active:scale-90 text-accent rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
+                  title="Share Order Details"
+                  aria-label="Share Order Details"
+                >
+                  <Share2 size={18} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-4 items-center">
@@ -763,30 +805,17 @@ export function OrderDetails() {
           </Button>
         )}
 
-        {(canEdit || canCancel) && (
+        {canCancel && (
           <div className="flex gap-2.5 mb-3 w-full">
-            {canEdit && (
-              <Button
-                className="flex-1 h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm shadow-accent/10 cursor-pointer flex items-center justify-center gap-1.5"
-                disabled={isUpdating}
-                onClick={() => router.push(`/place-order?editOrderId=${order.id}`)}
-              >
-                <Edit size={14} />
-                Edit Order
-              </Button>
-            )}
-            
-            {canCancel && (
-              <Button
-                variant="destructive"
-                className="flex-1 h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer flex items-center justify-center gap-1.5"
-                disabled={isUpdating}
-                onClick={handleCancel}
-              >
-                <X size={14} />
-                Cancel Order
-              </Button>
-            )}
+            <Button
+              variant="destructive"
+              className="flex-1 h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] shadow-sm shadow-destructive/10 cursor-pointer flex items-center justify-center gap-1.5"
+              disabled={isUpdating}
+              onClick={handleCancel}
+            >
+              <X size={14} />
+              Cancel Order
+            </Button>
           </div>
         )}
       </main>

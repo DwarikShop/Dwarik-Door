@@ -7,7 +7,8 @@ import { FAB } from "../components/FAB";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
-import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight } from "lucide-react";
+import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { formatDimension } from "../utils/format";
 import type { TOrder } from "../models/types";
 
@@ -20,12 +21,26 @@ export function OrderManagement() {
   const debouncedSearch = useDebounce(searchInput, 400);
 
   // Server-side filtering
-  const { orders, isLoading, isFetching } = useOrders({
+  const { orders, isLoading, isFetching, refetch } = useOrders({
     role: "owner",
     search: debouncedSearch,
     status: statusFilter === "all" ? "" : statusFilter,
     limit: 20,
   });
+
+  const handleDelete = async (e: React.MouseEvent, orderId: string) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Order deleted successfully");
+      refetch();
+    } catch {
+      toast.error("Failed to delete order.");
+    }
+  };
 
   // Group orders by groupId
   type ListItem =
@@ -75,6 +90,7 @@ export function OrderManagement() {
 
   const statusFilters = [
     { value: "all", label: "All" },
+    { value: "cancelled", label: "Cancelled" },
     { value: "draft", label: "Draft" },
     { value: "placed", label: "Placed" },
     { value: "backordered", label: "Backordered" },
@@ -207,7 +223,7 @@ export function OrderManagement() {
             if (item.type === "single") {
               const order = item.order;
               return (
-                <button
+                <div
                   key={order.id}
                   onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                   className="w-full text-left bg-card border border-border/40 hover:border-border/80 rounded-xl overflow-hidden shadow-sm active:scale-[0.99] transition-all flex items-center gap-3 p-2.5 cursor-pointer relative"
@@ -227,7 +243,18 @@ export function OrderManagement() {
                       <span className="text-xs font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
                         #{order.id}
                       </span>
-                      <StatusChip status={order.status} className="text-[9px] px-1.5 py-0.5 shrink-0" />
+                      <div className="flex items-center gap-1.5">
+                        {order.status === "cancelled" && (
+                          <button
+                            onClick={(e) => handleDelete(e, order.id)}
+                            className="p-1 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                            title="Delete Order"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                        <StatusChip status={order.status} className="text-[9px] px-1.5 py-0.5 shrink-0" />
+                      </div>
                     </div>
 
                     <h3 className="font-extrabold text-foreground text-[15px] leading-snug mt-1.5">
@@ -277,7 +304,7 @@ export function OrderManagement() {
                       </div>
                     </div>
                   </div>
-                </button>
+                </div>
               );
             }
 
@@ -286,12 +313,22 @@ export function OrderManagement() {
             const isExpanded = expandedGroups.has(groupId);
             const firstOrder = groupOrders[0];
             const allStatuses = [...new Set(groupOrders.map((o) => o.status))];
-            const overallStatus = allStatuses.length === 1 ? allStatuses[0] : "in_progress";
+            
+            let overallStatus = "in_progress";
+            if (allStatuses.length === 1) {
+              overallStatus = allStatuses[0];
+            } else if (!allStatuses.includes("in_progress") && !allStatuses.includes("done") && !allStatuses.includes("shipped")) {
+              if (allStatuses.includes("backordered")) {
+                overallStatus = "backordered";
+              } else if (allStatuses.includes("placed")) {
+                overallStatus = "placed";
+              }
+            }
 
             return (
               <div key={groupId} className="bg-card border border-border/40 rounded-xl shadow-sm overflow-hidden transition-all duration-200">
                 {/* Group Header block */}
-                <button
+                <div
                   onClick={() => toggleGroup(groupId)}
                   className="w-full text-left p-2.5 flex items-center gap-3 active:bg-secondary/40 transition-colors cursor-pointer"
                 >
@@ -304,7 +341,6 @@ export function OrderManagement() {
                       <span className="text-xs font-black text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 font-mono tracking-wide shrink-0">
                         #{groupId}
                       </span>
-                      <StatusChip status={overallStatus} className="text-[9px] px-1.5 py-0.5 shrink-0" />
                     </div>
 
                     <h3 className="font-extrabold text-foreground text-sm leading-snug mt-1.5">
@@ -323,20 +359,22 @@ export function OrderManagement() {
                         </span>
                       </div>
                       
-                      {isExpanded ? (
-                        <ChevronUp size={16} className="text-muted-foreground shrink-0" />
-                      ) : (
-                        <ChevronDown size={16} className="text-muted-foreground shrink-0" />
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {isExpanded ? (
+                          <ChevronUp size={16} className="text-muted-foreground shrink-0" />
+                        ) : (
+                          <ChevronDown size={16} className="text-muted-foreground shrink-0" />
+                        )}
+                      </div>
                     </div>
                   </div>
-                </button>
+                </div>
 
                 {/* Expanded inner items */}
                 {isExpanded && (
                   <div className="border-t border-border/30 bg-secondary/15 divide-y divide-border/20">
                     {groupOrders.map((order) => (
-                      <button
+                      <div
                         key={order.id}
                         onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                         className="w-full text-left p-2.5 pl-5 flex items-center gap-3 active:bg-secondary/40 transition-all cursor-pointer"
@@ -351,7 +389,18 @@ export function OrderManagement() {
                             <span className="text-[10px] font-black text-accent bg-accent/10 px-1 py-0.2 rounded border border-accent/15 font-mono shrink-0">
                               #{order.id}
                             </span>
-                            <StatusChip status={order.status} className="text-[8px] px-1 py-0.2 shrink-0" />
+                            <div className="flex items-center gap-1.5">
+                              {order.status === "cancelled" && (
+                                <button
+                                  onClick={(e) => handleDelete(e, order.id)}
+                                  className="p-1 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                                  title="Delete Order"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                              <StatusChip status={order.status} className="text-[8px] px-1 py-0.2 shrink-0" />
+                            </div>
                           </div>
                           
                           <h3 className="font-extrabold text-foreground text-xs leading-snug mt-1.5">
@@ -370,7 +419,7 @@ export function OrderManagement() {
                             <ChevronRight size={11} className="text-muted-foreground/45" />
                           </div>
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 )}
