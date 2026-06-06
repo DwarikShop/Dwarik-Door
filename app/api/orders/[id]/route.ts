@@ -65,7 +65,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       "unit",
       "groupId",
       "orderType",
-      "status"
+      "status",
+      "packaging",
+      "freeSize"
     ];
     const update: Record<string, any> = {};
     for (const key of allowed) {
@@ -83,7 +85,17 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     if (["in_progress", "done", "shipped", "cancelled", "rejected"].includes(order.status)) {
-      return NextResponse.json({ error: "Order cannot be edited in its current status" }, { status: 400 });
+      // For processed or cancelled orders, ONLY allow customer details to be updated.
+      const restrictedUpdate: any = {};
+      if (update.customerName) restrictedUpdate.customerName = update.customerName;
+      if (update.customerPhone) restrictedUpdate.customerPhone = update.customerPhone;
+      
+      if (Object.keys(restrictedUpdate).length === 0) {
+        return NextResponse.json(order); // No allowed fields updated, silently return
+      }
+
+      await Order.updateOne({ id }, { $set: restrictedUpdate });
+      return NextResponse.json({ ...order, ...restrictedUpdate });
     }
 
     const changedBy = body.changedBy || "system";
@@ -218,7 +230,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     // Apply the rest of the updates
     for (const key in update) {
-      if (key !== "productId" && key !== "quantity" && key !== "groupId" && key !== "orderType") {
+      if (
+        key !== "productId" &&
+        key !== "quantity" &&
+        key !== "groupId" &&
+        key !== "orderType" &&
+        key !== "status"
+      ) {
         (order as any)[key] = update[key];
       }
     }
@@ -276,9 +294,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    if (order.status !== "draft") {
+    if (order.status !== "draft" && order.status !== "cancelled") {
       return NextResponse.json(
-        { error: "Only draft orders can be deleted" },
+        { error: "Only draft and cancelled orders can be deleted" },
         { status: 400 }
       );
     }
