@@ -26,7 +26,9 @@ const StatusHistorySchema = new Schema<IStatusHistory>(
       type: String,
       enum: [
         null,
+        "draft",
         "placed",
+        "backordered",
         "in_progress",
         "done",
         "shipped",
@@ -38,7 +40,9 @@ const StatusHistorySchema = new Schema<IStatusHistory>(
     toStatus: {
       type: String,
       enum: [
+        "draft",
         "placed",
+        "backordered",
         "in_progress",
         "done",
         "shipped",
@@ -68,8 +72,10 @@ const StatusHistorySchema = new Schema<IStatusHistory>(
 // Fetch full timeline for an order, oldest first
 StatusHistorySchema.index({ orderId: 1, createdAt: 1 });
 
-const StatusHistory =
-  (mongoose.models.StatusHistory as mongoose.Model<IStatusHistory>) ||
-  mongoose.model<IStatusHistory>("StatusHistory", StatusHistorySchema);
+if (mongoose.models && mongoose.models.StatusHistory) {
+  delete mongoose.models.StatusHistory;
+}
+
+const StatusHistory = mongoose.model<IStatusHistory>("StatusHistory", StatusHistorySchema);
 
 export default StatusHistory;

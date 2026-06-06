@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components";
 import type { TOrder } from "../models/types";
+import { formatDimension } from "../utils/format";
 
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
@@ -98,10 +99,12 @@ export function OrderDetails() {
     );
   }
 
-  const canCancel = order.status === "placed";
+  const canCancel = ["placed", "backordered"].includes(order.status);
+  const canConvert = order.status === "draft";
 
   const timeline = [
-    { status: "placed", label: "Placed", active: true },
+    { status: "draft", label: "Draft", active: order.status === "draft", hidden: order.status !== "draft" },
+    { status: "placed", label: "Placed", active: order.status !== "draft" },
     {
       status: "in_progress",
       label: "In Progress",
@@ -126,6 +129,22 @@ export function OrderDetails() {
       router.back();
     } else {
       toast.error("Failed to cancel order. Please try again.");
+    }
+  };
+
+  const handleConvertToOrder = async () => {
+    try {
+      const res = await fetch(`/api/orders/${order.id}/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ changedBy: user?.id || "owner" }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Draft converted to order successfully!");
+      // reload the page to refresh order data
+      window.location.reload();
+    } catch {
+      toast.error("Failed to convert draft to order.");
     }
   };
 
@@ -161,7 +180,7 @@ export function OrderDetails() {
           </div>
         </td>
         <td class="py-4 px-4 text-xs text-center font-bold text-gray-700">
-          ${o.freeSize ? 'Free Size' : `${o.height} × ${o.width} ${o.unit}`}
+          ${o.freeSize ? 'Free Size' : `${formatDimension(o.height, o.unit)} × ${formatDimension(o.width, o.unit)} ${o.unit}`}
         </td>
         <td class="py-4 px-4 text-xs text-center font-bold text-gray-700 capitalize">
           ${o.packaging || 'Plastic Wrap'}
@@ -360,7 +379,7 @@ export function OrderDetails() {
         doc.setTextColor(26, 18, 16);
         doc.setFontSize(9);
 
-        const dimensions = o.freeSize ? "Free Size" : `${o.height} x ${o.width} ${o.unit}`;
+        const dimensions = o.freeSize ? "Free Size" : `${formatDimension(o.height, o.unit)} x ${formatDimension(o.width, o.unit)} ${o.unit}`;
         doc.text(dimensions, 100, currentY + 6);
 
         const packaging = o.packaging || "Plastic Wrap";
@@ -463,7 +482,7 @@ export function OrderDetails() {
     text += `----------------------------------------\n\n`;
 
     groupOrders.forEach((o, index) => {
-      const dimensions = o.freeSize ? "Free Size" : `${o.height} x ${o.width} ${o.unit}`;
+      const dimensions = o.freeSize ? "Free Size" : `${formatDimension(o.height, o.unit)} x ${formatDimension(o.width, o.unit)} ${o.unit}`;
       text += `*Door #${index + 1} (${o.id})*\n`;
       text += `- *Item*: ${o.productName}\n`;
       text += `- *Dimensions*: ${dimensions}\n`;
@@ -556,7 +575,7 @@ export function OrderDetails() {
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Box size={12} className="text-accent" />
                   <span className="font-medium text-foreground">
-                    {order.freeSize ? "Free Size" : `${order.height}×${order.width} ${order.unit}`}
+                    {order.freeSize ? "Free Size" : `${formatDimension(order.height, order.unit)}×${formatDimension(order.width, order.unit)} ${order.unit}`}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -642,14 +661,13 @@ export function OrderDetails() {
           </div>
 
           <div className="relative pl-1">
-            {timeline.map((step, index) => {
+            {timeline.filter(t => !t.hidden).map((step, index) => {
               const isActive = step.active;
               const isCurrent = step.status === order.status;
-
               return (
                 <div key={step.status} className="flex gap-4 relative pb-6 last:pb-0">
                   {/* Timeline path line */}
-                  {index < timeline.length - 1 && (
+                  {index < timeline.filter(t => !t.hidden).length - 1 && (
                     <div
                       className={`absolute left-3.5 top-7 w-0.5 h-[calc(100%-14px)] transition-colors duration-300 ${isActive ? "bg-accent" : "bg-border"
                         }`}
@@ -732,6 +750,17 @@ export function OrderDetails() {
         </Card>
 
         {/* Action Controls */}
+        {canConvert && (
+          <Button
+            className="w-full h-11 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all active:scale-[0.98] bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm shadow-accent/10 mb-3 cursor-pointer"
+            disabled={isUpdating}
+            onClick={handleConvertToOrder}
+          >
+            <Check size={15} className="mr-1.5" />
+            {isUpdating ? "Converting…" : "Convert To Order"}
+          </Button>
+        )}
+        
         {canCancel && (
           <Button
             variant="destructive"

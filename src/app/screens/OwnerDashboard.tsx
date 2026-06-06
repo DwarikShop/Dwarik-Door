@@ -41,7 +41,17 @@ const STATUS_META: Record<
   string,
   { label: string; dot: string; pill: string }
 > = {
+  draft: {
+    label: "Draft",
+    dot: "bg-muted-foreground",
+    pill: "bg-muted/50 text-muted-foreground",
+  },
   placed: { label: "Placed", dot: "bg-info", pill: "bg-info/10 text-info" },
+  backordered: {
+    label: "Backordered",
+    dot: "bg-destructive",
+    pill: "bg-destructive/10 text-destructive",
+  },
   in_progress: {
     label: "In Progress",
     dot: "bg-warning",
@@ -62,6 +72,11 @@ const STATUS_META: Record<
     dot: "bg-muted-foreground",
     pill: "bg-secondary text-muted-foreground",
   },
+  rejected: {
+    label: "Rejected",
+    dot: "bg-destructive",
+    pill: "bg-destructive/10 text-destructive",
+  },
 };
 
 export function OwnerDashboard() {
@@ -72,15 +87,20 @@ export function OwnerDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const stats = {
+    drafts: orders.filter((o) => o.status === "draft").length,
     pending: orders.filter((o) => o.status === "placed").length,
+    backordered: orders.filter((o) => o.status === "backordered").length,
+    backorderedUnits: orders.filter((o) => o.status === "backordered").reduce((acc, o) => acc + o.quantity, 0),
     inProgress: orders.filter((o) => o.status === "in_progress").length,
     done: orders.filter((o) => o.status === "done").length,
     shipped: orders.filter((o) => o.status === "shipped").length,
+    cancelled: orders.filter((o) => o.status === "cancelled").length,
+    rejected: orders.filter((o) => o.status === "rejected").length,
     lowInventory: products.filter((p) => p.stock - p.reserved < 10).length,
     damaged: products.reduce((acc, p) => acc + p.damaged, 0),
   };
 
-  const hasAlerts = stats.damaged > 0 || stats.lowInventory > 0;
+  const hasAlerts = stats.damaged > 0 || stats.lowInventory > 0 || stats.backordered > 0;
   const recentOrders = [...orders]
     .sort(
       (a, b) =>
@@ -99,12 +119,12 @@ export function OwnerDashboard() {
     {
       label: "Progress",
       value: stats.inProgress,
-      icon: TrendingUp,
+      icon: Activity,
       color: "text-warning",
       bg: "bg-warning/8",
     },
     {
-      label: "Ready",
+      label: "Done",
       value: stats.done,
       icon: CheckCircle2,
       color: "text-success",
@@ -117,6 +137,12 @@ export function OwnerDashboard() {
       color: "text-primary",
       bg: "bg-primary/10",
     },
+  ];
+
+  const auxiliaryStats = [
+    { label: "Drafts", value: stats.drafts, color: "text-muted-foreground", bg: "bg-muted/30" },
+    { label: "Cancelled", value: stats.cancelled, color: "text-muted-foreground", bg: "bg-secondary" },
+    { label: "Rejected", value: stats.rejected, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   return (
@@ -155,11 +181,27 @@ export function OwnerDashboard() {
         
         {/* ── Section 1: Alerts (Snug Notification Cards) ── */}
         {hasAlerts && (
-          <section className="flex gap-3 animate-[slideUp_0.3s_ease-out]">
+          <section className="flex gap-3 overflow-x-auto scrollbar-none animate-[slideUp_0.3s_ease-out]">
+            {stats.backordered > 0 && (
+              <button
+                onClick={() => router.push("/orders")}
+                className="flex-none w-[160px] flex items-center gap-3 bg-destructive/10 border border-destructive/20 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+              >
+                <div className="p-2 bg-destructive/15 rounded-xl shrink-0">
+                  <AlertTriangle className="text-destructive animate-pulse" size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase font-extrabold text-destructive/85 tracking-wider">Backorders</p>
+                  <p className="text-sm font-black text-destructive leading-tight mt-0.5">
+                    {stats.backordered} orders
+                  </p>
+                </div>
+              </button>
+            )}
             {stats.damaged > 0 && (
               <button
                 onClick={() => router.push("/inventory")}
-                className="flex-1 flex items-center gap-3 bg-destructive/5 border border-destructive/15 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                className="flex-none w-[160px] flex items-center gap-3 bg-destructive/5 border border-destructive/15 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
               >
                 <div className="p-2 bg-destructive/10 rounded-xl shrink-0">
                   <AlertTriangle className="text-destructive animate-pulse" size={18} />
@@ -176,7 +218,7 @@ export function OwnerDashboard() {
             {stats.lowInventory > 0 && (
               <button
                 onClick={() => router.push("/inventory")}
-                className="flex-1 flex items-center gap-3 bg-warning/5 border border-warning/15 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+                className="flex-none w-[160px] flex items-center gap-3 bg-warning/5 border border-warning/15 rounded-2xl p-3.5 text-left active:scale-[0.98] transition-all cursor-pointer shadow-sm"
               >
                 <div className="p-2 bg-warning/10 rounded-xl shrink-0">
                   <Package className="text-warning animate-pulse" size={18} />
@@ -223,6 +265,23 @@ export function OwnerDashboard() {
               </button>
             ))}
           </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {auxiliaryStats.map((s) => (
+              <button
+                key={s.label}
+                onClick={() => router.push("/orders")}
+                className={`border border-border/40 rounded-2xl overflow-hidden shadow-sm active:scale-95 cursor-pointer hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center py-2.5 px-1 gap-0.5 ${s.bg}`}
+              >
+                <p className={`text-lg font-black leading-none tabular-nums ${s.color}`}>
+                  {s.value}
+                </p>
+                <p className="text-[8px] uppercase tracking-widest font-extrabold text-foreground/60 text-center leading-tight mt-1">
+                  {s.label}
+                </p>
+              </button>
+            ))}
+          </div>
         </section>
 
         {/* ── Section 3: Recent Orders ── */}
@@ -253,7 +312,7 @@ export function OwnerDashboard() {
                 return (
                   <button
                     key={order.id}
-                    onClick={() => router.push(`/orders/${order.id}`)}
+                    onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                     className="w-full flex items-center gap-3 px-3.5 py-3.5 text-left hover:bg-secondary/35 active:bg-secondary/50 transition-colors cursor-pointer"
                   >
                     {/* Compact Image with status indicator */}

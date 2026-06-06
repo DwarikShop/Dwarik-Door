@@ -8,3 +8,38 @@
     at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
     at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T15:59:13.275Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T15:59:31.414Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T15:59:42.219Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T16:20:34.648Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T16:20:42.270Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T16:23:51.186Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+2026-06-04T16:24:17.744Z ValidationError: StatusHistory validation failed: toStatus: `draft` is not a valid enum value for path `toStatus`.
+    at Document.invalidate (/Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3381:32)
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/document.js:3142:17
+    at /Users/ashis/Learnings/Dwarik-Door/node_modules/mongoose/lib/schemaType.js:1443:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:77:11)

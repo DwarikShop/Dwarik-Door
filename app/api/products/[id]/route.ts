@@ -61,6 +61,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       }
     }
 
+    const oldProduct = await Product.findOne({ id }).lean();
+    
     const product = await Product.findOneAndUpdate(
       { id },
       { $set: body },
@@ -69,6 +71,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    if (oldProduct && typeof body.stock === "number" && body.stock > oldProduct.stock) {
+      const { resolveFIFOBackorders } = await import("@/lib/inventory");
+      await resolveFIFOBackorders(product.id, "owner");
     }
 
     return NextResponse.json(product);

@@ -32,7 +32,23 @@ const cached: MongooseCache = global._mongooseCache ?? {
 if (!global._mongooseCache) global._mongooseCache = cached;
 
 export async function connectDB(): Promise<typeof mongoose> {
-  if (cached.conn) return cached.conn;
+  const readyState = mongoose.connection.readyState;
+
+  // 1: connected
+  if (readyState === 1) {
+    return mongoose;
+  }
+
+  // 2: connecting
+  if (readyState === 2 && cached.promise) {
+    return cached.promise;
+  }
+
+  // If disconnected (0) or disconnecting (3), clean up cached connection references to force a reconnect
+  if (readyState === 0 || readyState === 3) {
+    cached.conn = null;
+    cached.promise = null;
+  }
 
   // Read URI lazily — throws a clear error if missing at runtime
   const uri = process.env.MONGODB_URI;

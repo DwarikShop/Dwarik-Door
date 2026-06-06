@@ -126,6 +126,7 @@ export function DemandAnalysis() {
       { totalOrdered: number; orderCount: number }
     >();
     for (const order of activeOrders) {
+      if (!order.productId) continue;
       const prev = demandMap.get(order.productId) ?? {
         totalOrdered: 0,
         orderCount: 0,

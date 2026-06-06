@@ -8,6 +8,7 @@ import { StatusChip } from "../components/ui/StatusChip";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
 import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight } from "lucide-react";
+import { formatDimension } from "../utils/format";
 import type { TOrder } from "../models/types";
 
 export function OrderManagement() {
@@ -74,7 +75,9 @@ export function OrderManagement() {
 
   const statusFilters = [
     { value: "all", label: "All" },
+    { value: "draft", label: "Draft" },
     { value: "placed", label: "Placed" },
+    { value: "backordered", label: "Backordered" },
     { value: "in_progress", label: "Progress" },
     { value: "done", label: "Done" },
     { value: "shipped", label: "Shipped" },
@@ -206,7 +209,7 @@ export function OrderManagement() {
               return (
                 <button
                   key={order.id}
-                  onClick={() => router.push(`/orders/${order.id}`)}
+                  onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                   className="w-full text-left bg-card border border-border/40 hover:border-border/80 rounded-xl overflow-hidden shadow-sm active:scale-[0.99] transition-all flex items-center gap-3 p-2.5 cursor-pointer relative"
                 >
                   {/* Small product thumbnail */}
@@ -251,7 +254,7 @@ export function OrderManagement() {
                     <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-border/10">
                       <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
                         <span className="font-medium bg-secondary/40 px-1 py-0.2 rounded text-[10px]">
-                          {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
+                          {order.freeSize ? "Free Size" : `${formatDimension(order.height, order.unit)} × ${formatDimension(order.width, order.unit)} ${order.unit}`}
                         </span>
                         <span className="w-1 h-1 rounded-full bg-muted-foreground/30 animate-pulse" />
                         <span className="font-bold text-accent">
@@ -335,7 +338,7 @@ export function OrderManagement() {
                     {groupOrders.map((order) => (
                       <button
                         key={order.id}
-                        onClick={() => router.push(`/orders/${order.id}`)}
+                        onClick={() => router.push(order.status === 'draft' ? `/place-order?editDraftId=${order.id}` : `/orders/${order.id}`)}
                         className="w-full text-left p-2.5 pl-5 flex items-center gap-3 active:bg-secondary/40 transition-all cursor-pointer"
                       >
                         <img
@@ -359,7 +362,7 @@ export function OrderManagement() {
                           <div className="flex items-center justify-between mt-1 text-[10px] text-muted-foreground">
                             <div className="flex items-center gap-1.5">
                               <span className="bg-card border border-border/40 px-1 py-0.2 rounded text-[9px]">
-                                {order.freeSize ? "Free Size" : `${order.height} × ${order.width} ${order.unit}`}
+                                {order.freeSize ? "Free Size" : `${formatDimension(order.height, order.unit)} × ${formatDimension(order.width, order.unit)} ${order.unit}`}
                               </span>
                               <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
                               <span className="font-bold text-accent">Qty: {order.quantity}</span>

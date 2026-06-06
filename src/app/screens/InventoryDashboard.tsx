@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BottomNav } from "../components/BottomNav";
 import { useProducts } from "../hooks/useProducts";
+import { useOrders } from "../hooks/useOrders";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -118,7 +119,7 @@ export const getCategoryConfig = (category: string) => {
   };
 };
 
-type FilterType = "all" | "low" | "out" | "damaged";
+type FilterType = "all" | "low" | "out" | "damaged" | "backordered";
 
 const EMPTY_FORM = {
   id: "",
@@ -529,6 +530,8 @@ export function InventoryDashboard() {
     checkIdExists,
   } = useProducts();
 
+  const { orders } = useOrders({ role: isOwner ? "owner" : "employee" });
+
   const idCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -740,6 +743,8 @@ export function InventoryDashboard() {
     ).length,
     outOfStock: products.filter((p) => p.stock - p.reserved <= 0).length,
     totalDamaged: products.reduce((acc, p) => acc + p.damaged, 0),
+    backorders: orders.filter((o) => o.status === "backordered").length,
+    shortageUnits: orders.filter((o) => o.status === "backordered").reduce((acc, o) => acc + (o.shortageQuantity || 0), 0),
   };
 
   const filteredProducts = products.filter((product) => {
@@ -753,7 +758,8 @@ export function InventoryDashboard() {
       filter === "all" ||
       (filter === "low" && available > 0 && available <= 10) ||
       (filter === "out" && available <= 0) ||
-      (filter === "damaged" && (product.damaged ?? 0) > 0);
+      (filter === "damaged" && (product.damaged ?? 0) > 0) ||
+      (filter === "backordered" && orders.some((o) => o.productId === product.id && o.status === "backordered"));
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     return matchesSearch && matchesFilter && matchesCategory;
   });
@@ -846,7 +852,7 @@ export function InventoryDashboard() {
 
       {/* Dense Stats Overview */}
       <div className="max-w-lg mx-auto px-4 pt-4 animate-[fadeIn_0.3s_ease-out]">
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-4 gap-2">
           {[
             {
               label: "Low",
@@ -855,6 +861,7 @@ export function InventoryDashboard() {
               color: "text-warning",
               bg: "bg-warning/8",
               border: "border-warning/15",
+              filterKey: "low" as FilterType,
             },
             {
               label: "Out",
@@ -863,6 +870,7 @@ export function InventoryDashboard() {
               color: "text-destructive",
               bg: "bg-destructive/8",
               border: "border-destructive/15",
+              filterKey: "out" as FilterType,
             },
             {
               label: "Damaged",
@@ -871,26 +879,42 @@ export function InventoryDashboard() {
               color: "text-orange-500",
               bg: "bg-orange-500/8",
               border: "border-orange-500/15",
+              filterKey: "damaged" as FilterType,
+            },
+            {
+              label: "Backordered",
+              value: stats.shortageUnits || 0,
+              icon: Layers,
+              color: "text-destructive",
+              bg: "bg-destructive/8",
+              border: "border-destructive/20",
+              filterKey: "backordered" as FilterType,
             },
           ].map((s) => {
             const Icon = s.icon;
+            const isActive = filter === s.filterKey;
             return (
-              <div
+              <button
                 key={s.label}
-                className={`bg-card border ${s.border} rounded-xl p-1.5 pl-2 pr-2 flex items-center gap-2 shadow-sm transition-all duration-200 hover:scale-[1.01]`}
+                onClick={() => setFilter((prev) => (prev === s.filterKey ? "all" : s.filterKey))}
+                className={`bg-card border ${s.border} rounded-xl p-1.5 flex flex-col sm:flex-row items-center justify-center sm:justify-start text-center sm:text-left gap-1 sm:gap-2 shadow-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer select-none w-full ${
+                  isActive
+                    ? "ring-2 ring-accent/30 border-accent bg-accent/[0.04] dark:bg-accent/[0.08]"
+                    : "hover:bg-secondary/40"
+                }`}
               >
-                <div className={`p-1.5 rounded-xl ${s.bg} shrink-0`}>
+                <div className={`p-1.5 rounded-xl ${s.bg} shrink-0 flex items-center justify-center`}>
                   <Icon size={13} className={s.color} />
                 </div>
-                <div className="min-w-0 leading-none">
+                <div className="min-w-0 leading-tight flex flex-col items-center sm:items-start w-full">
                   <p className={`text-sm font-black tracking-tight ${s.color}`}>
                     {s.value}
                   </p>
-                  <p className="text-[8.5px] uppercase tracking-wider font-extrabold text-muted-foreground mt-0.5">
+                  <p className="text-[8px] sm:text-[8.5px] uppercase tracking-wider font-extrabold text-muted-foreground mt-0.5 truncate max-w-full">
                     {s.label}
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -1014,11 +1038,12 @@ export function InventoryDashboard() {
                 )}
               </button>
             )}
-            {(searchTerm || selectedCategory) && (
+            {(searchTerm || selectedCategory || filter !== "all") && (
               <button
                 onClick={() => {
                   setSearchTerm("");
                   setSelectedCategory(null);
+                  setFilter("all");
                 }}
                 className="text-xs text-accent font-black uppercase tracking-wider cursor-pointer"
               >

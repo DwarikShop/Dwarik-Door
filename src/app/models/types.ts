@@ -14,7 +14,9 @@
 export type UserRole = "owner" | "employee";
 
 export type OrderStatus =
+  | "draft"
   | "placed"
+  | "backordered"
   | "in_progress"
   | "done"
   | "shipped"
@@ -31,7 +33,18 @@ export type InventoryChangeReason =
   | "order_shipped" // stock decremented on shipment
   | "order_rejected" // stock returned or marked damaged
   | "manual_adjustment" // owner manually corrects stock
-  | "damage_report"; // units marked as damaged
+  | "damage_report" // units marked as damaged
+  | "DRAFT_CREATED"
+  | "DRAFT_UPDATED"
+  | "DRAFT_CONVERTED_TO_ORDER"
+  | "ORDER_EDITED"
+  | "ORDER_PRODUCT_CHANGED"
+  | "ORDER_CANCELLED"
+  | "ORDER_REJECTED"
+  | "ORDER_SHIPPED"
+  | "BACKORDER_CREATED"
+  | "BACKORDER_RESOLVED"
+  | "NEGATIVE_INVENTORY_CREATED";
 
 export type StockField = "stock" | "reserved" | "damaged";
 
@@ -67,11 +80,11 @@ export interface TProduct {
 /** Matches the Order collection and the existing mockData.Order */
 export interface TOrder {
   id: string;
-  productId: string;
-  productName: string;
-  productImage: string;
-  height: number;
-  width: number;
+  productId?: string;
+  productName?: string;
+  productImage?: string;
+  height?: number;
+  width?: number;
   unit: MeasurementUnit;
   packaging?: PackagingOption;
   freeSize?: boolean; // true = standard size, no custom dimensions
@@ -83,6 +96,11 @@ export interface TOrder {
   customerPhone?: string;
   groupId?: string; // set when this order belongs to a group
   orderType?: "single" | "group"; // defaults to 'single'
+  
+  isInventoryShortage?: boolean;
+  shortageQuantity?: number;
+  availableAtOrderTime?: number;
+  reservedQuantity?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

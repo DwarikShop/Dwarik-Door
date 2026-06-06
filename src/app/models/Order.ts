@@ -24,27 +24,27 @@ const OrderSchema = new Schema<IOrder>(
     },
     productId: {
       type: String,
-      required: true,
+      required: function(this: any) { return this.status !== "draft"; },
       trim: true,
       index: true,
     },
     productName: {
       type: String,
-      required: true,
+      required: function(this: any) { return this.status !== "draft"; },
       trim: true,
     },
     productImage: {
       type: String,
-      required: true,
+      required: function(this: any) { return this.status !== "draft"; },
     },
     height: {
       type: Number,
-      required: true,
+      required: function(this: any) { return this.status !== "draft"; },
       min: 0,
     },
     width: {
       type: Number,
-      required: true,
+      required: function(this: any) { return this.status !== "draft"; },
       min: 0,
     },
     unit: {
@@ -72,7 +72,9 @@ const OrderSchema = new Schema<IOrder>(
     status: {
       type: String,
       enum: [
+        "draft",
         "placed",
+        "backordered",
         "in_progress",
         "done",
         "shipped",
@@ -109,6 +111,21 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       enum: ["single", "group"],
       default: "single",
+    },
+    isInventoryShortage: {
+      type: Boolean,
+      default: false,
+    },
+    shortageQuantity: {
+      type: Number,
+      default: 0,
+    },
+    availableAtOrderTime: {
+      type: Number,
+    },
+    reservedQuantity: {
+      type: Number,
+      default: 0,
     },
   },
   {

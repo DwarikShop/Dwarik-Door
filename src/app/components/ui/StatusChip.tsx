@@ -8,6 +8,8 @@ interface StatusChipProps {
     | "shipped"
     | "cancelled"
     | "rejected"
+    | "draft"
+    | "backordered"
     | "low"
     | "out"
     | "available";
@@ -16,7 +18,9 @@ interface StatusChipProps {
 
 export function StatusChip({ status, className }: StatusChipProps) {
   const statusConfig = {
+    draft: { bg: "bg-muted/50", text: "text-muted-foreground", label: "Draft" },
     placed: { bg: "bg-info/10", text: "text-info", label: "Placed" },
+    backordered: { bg: "bg-destructive/10", text: "text-destructive", label: "Backordered" },
     in_progress: {
       bg: "bg-warning/10",
       text: "text-warning",

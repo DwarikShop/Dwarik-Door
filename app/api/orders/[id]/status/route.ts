@@ -44,7 +44,9 @@ const OWNER_ONLY_TRANSITIONS: OrderStatus[] = ["cancelled"];
 
 // Valid transitions map
 const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  draft: ["placed", "cancelled"],
   placed: ["in_progress", "cancelled", "rejected"],
+  backordered: ["placed", "cancelled", "rejected"],
   in_progress: ["done", "rejected"],
   done: ["shipped"],
   shipped: [],
@@ -125,7 +127,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const product = await Product.findOne({ id: order.productId });
 
     if (product) {
-      const qty = order.quantity;
+      const qty = order.reservedQuantity || order.quantity; // Fallback for legacy orders
 
       if (toStatus === "cancelled") {
         await Product.findOneAndUpdate(
@@ -139,10 +141,14 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.reserved,
           newValue: Math.max(0, product.reserved - qty),
           delta: -qty,
-          reason: "order_cancelled",
+          reason: "ORDER_CANCELLED",
           orderId: id,
           changedBy,
         });
+        
+        // Trigger FIFO resolution since reserved inventory was released
+        const { resolveFIFOBackorders } = await import("@/lib/inventory");
+        await resolveFIFOBackorders(product.id, changedBy);
       }
 
       if (toStatus === "rejected") {
@@ -157,7 +163,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.reserved,
           newValue: Math.max(0, product.reserved - qty),
           delta: -qty,
-          reason: "order_rejected",
+          reason: "ORDER_REJECTED",
           orderId: id,
           changedBy,
         });
@@ -173,6 +179,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             orderId: id,
             changedBy,
           });
+        } else {
+          // If rejected for "other", the inventory goes back to the pool, so trigger FIFO
+          const { resolveFIFOBackorders } = await import("@/lib/inventory");
+          await resolveFIFOBackorders(product.id, changedBy);
         }
       }
 
@@ -188,7 +198,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.reserved,
           newValue: Math.max(0, product.reserved - qty),
           delta: -qty,
-          reason: "order_shipped",
+          reason: "ORDER_SHIPPED",
           orderId: id,
           changedBy,
         });
@@ -199,7 +209,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           previousValue: product.stock,
           newValue: Math.max(0, product.stock - qty),
           delta: -qty,
-          reason: "order_shipped",
+          reason: "ORDER_SHIPPED",
           orderId: id,
           changedBy,
         });
@@ -207,22 +217,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     // ── Update order status ───────────────────────────────────────────────────
-    if (toStatus === "cancelled") {
-      await Order.findOneAndDelete({ id });
-      await StatusHistory.deleteMany({ orderId: id });
-      
-      // Update OrderGroup if applicable
-      if (order.groupId) {
-        await OrderGroup.findOneAndUpdate(
-          { id: order.groupId },
-          { $inc: { totalItems: -1 } }
-        );
-      }
-      
-      return NextResponse.json({ success: true, deleted: true, id });
-    }
-
     order.status = toStatus;
+    
+    // For Drafts, reset or keep things clean
+    if (toStatus === "cancelled" || toStatus === "rejected") {
+      order.reservedQuantity = 0;
+      order.isInventoryShortage = false;
+      order.shortageQuantity = 0;
+    }
+    
     await order.save();
 
     // ── Write status history ──────────────────────────────────────────────────
