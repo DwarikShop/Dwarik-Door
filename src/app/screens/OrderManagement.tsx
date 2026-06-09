@@ -7,6 +7,7 @@ import { FAB } from "../components/FAB";
 import { StatusChip } from "../components/ui/StatusChip";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
+import { useDragScroll } from "../hooks/useDragScroll";
 import { Search, Package, X, Layers, ChevronDown, ChevronUp, User, Calendar, ChevronRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDimension } from "../utils/format";
@@ -16,6 +17,7 @@ export function OrderManagement() {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const filterScrollRef = useDragScroll<HTMLDivElement>();
 
   // Debounce search inputs
   const debouncedSearch = useDebounce(searchInput, 400);
@@ -168,7 +170,10 @@ export function OrderManagement() {
         </div>
 
         {/* Dynamic Horizontal Filter pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-3 max-w-lg mx-auto">
+        <div
+          ref={filterScrollRef}
+          className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-3 max-w-lg mx-auto touch-pan-x cursor-grab active:cursor-grabbing"
+        >
           {statusFilters.map((f) => {
             const isSelected = statusFilter === f.value;
             return (

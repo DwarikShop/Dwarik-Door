@@ -7,6 +7,7 @@ import { StatusChip } from "../components/ui/StatusChip";
 import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../hooks/useOrders";
 import { useDebounce } from "../hooks/useDebounce";
+import { useDragScroll } from "../hooks/useDragScroll";
 import { Search, Package, ClipboardList, X, ChevronRight, Clock } from "lucide-react";
 import { formatDimension } from "../utils/format";
 
@@ -15,6 +16,7 @@ export function EmployeeOrderList() {
   const { user } = useAuth();
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const filterScrollRef = useDragScroll<HTMLDivElement>();
 
   // Debounce search typing
   const debouncedSearch = useDebounce(searchInput, 400);
@@ -114,7 +116,10 @@ export function EmployeeOrderList() {
         </div>
 
         {/* Dynamic Filter Pills inside header */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-3 max-w-lg mx-auto">
+        <div
+          ref={filterScrollRef}
+          className="flex gap-2 overflow-x-auto scrollbar-none px-4 pb-3 max-w-lg mx-auto touch-pan-x cursor-grab active:cursor-grabbing"
+        >
           {statusFilters.map((f) => {
             const isSelected = statusFilter === f.value;
             return (

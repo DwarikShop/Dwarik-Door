@@ -7,6 +7,7 @@ import { FAB } from "../components/FAB";
 import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../hooks/useOrders";
 import { useProducts } from "../hooks/useProducts";
+import { useDragScroll } from "../hooks/useDragScroll";
 import {
   Bell,
   AlertTriangle,
@@ -85,6 +86,8 @@ export function OwnerDashboard() {
   const { products } = useProducts();
   const { orders } = useOrders({ role: "owner", status: "all" });
   const [showNotifications, setShowNotifications] = useState(false);
+  const alertsScrollRef = useDragScroll<HTMLElement>();
+  const pulseScrollRef = useDragScroll<HTMLDivElement>();
 
   const stats = {
     drafts: orders.filter((o) => o.status === "draft").length,
@@ -183,7 +186,10 @@ export function OwnerDashboard() {
         
         {/* ── Section 1: Alerts (Snug Notification Cards) ── */}
         {hasAlerts && (
-          <section className="flex gap-3 overflow-x-auto scrollbar-none animate-[slideUp_0.3s_ease-out]">
+          <section
+            ref={alertsScrollRef}
+            className="flex gap-3 overflow-x-auto scrollbar-none animate-[slideUp_0.3s_ease-out] touch-pan-x cursor-grab active:cursor-grabbing"
+          >
             {stats.backordered > 0 && (
               <button
                 onClick={() => router.push("/orders")}
@@ -251,7 +257,10 @@ export function OwnerDashboard() {
             </button>
           </div>
 
-          <div className="flex gap-2 py-1 overflow-x-auto scrollbar-none">
+          <div
+            ref={pulseScrollRef}
+            className="flex gap-2 py-1 overflow-x-auto scrollbar-none touch-pan-x cursor-grab active:cursor-grabbing"
+          >
             {pulseStats.map((s) => (
               <button
                 key={s.label}
